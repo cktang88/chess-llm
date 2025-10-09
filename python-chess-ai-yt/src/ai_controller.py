@@ -62,7 +62,11 @@ Recent moves: {move_history_str}
 
 Legal moves available: {legal_moves_str}
 
-Analyze the position and provide your next move. Respond with JSON in this exact format:
+Analyze the position and provide your next move. 
+IMPORTANT: You MUST respond with a move in UCI format (e.g., "e2e4", "g1f3", "e1g1").
+DO NOT use SAN notation like "Nf3", "O-O", "Bxc5", etc.
+
+Respond with JSON in this exact format:
 {{
   "move": "e2e4",
   "reasoning": "Brief explanation of why this move is good"
