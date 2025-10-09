@@ -76,9 +76,13 @@ Analyze the position and provide your next move. Respond with JSON in this exact
                 reasoning_effort="low",
                 messages=[
                     {
+                        "role": "system",
+                        "content": CHESS_TACTICS_PROMPT,
+                    },
+                    {
                         "role": "user",
-                        "content": CHESS_TACTICS_PROMPT + "\n\n" + user_message,
-                    }
+                        "content": user_message,
+                    },
                 ],
             )
 
