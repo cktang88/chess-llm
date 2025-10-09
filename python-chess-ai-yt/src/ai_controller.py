@@ -17,7 +17,7 @@ from chess_prompt import CHESS_TACTICS_PROMPT
 
 
 class AIController:
-    """Handles LLM-based AI moves for the chess game."""
+    """Handles LLM-based AI moves for the chess game"""
 
     def __init__(self, api_key=None):
         """Initialize AI controller with OpenAI client."""
