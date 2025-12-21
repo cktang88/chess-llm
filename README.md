@@ -1,11 +1,11 @@
 # Chess LLM - Play Chess Against AI
 
-A chess game with a beautiful pygame GUI where you can play against an AI powered by GPT-5 with advanced tactical knowledge.
+A chess game with a beautiful pygame GUI where you can play against an AI powered by GPT-5.2 with advanced tactical knowledge.
 
 ## Features
 
 - **Beautiful GUI**: Pygame-based graphical interface with drag-and-drop piece movement
-- **LLM-Powered AI**: Play against GPT-5 with deep chess tactics knowledge
+- **LLM-Powered AI**: Play against GPT-5.2 with deep chess tactics knowledge
 - **FEN Integration**: Seamless conversion between GUI board state and standard chess notation
 - **Move History Tracking**: AI learns from the game progression
 - **Keyboard Controls**:
