@@ -1,16 +1,50 @@
 # Chess LLM
 
-A chess game where you play against an LLM. Two variants live in this repo:
+A chess game where you play against an LLM. Two variants live in this repo.
 
-- **v1** — an interactive pygame GUI where GPT plays you move-by-move using
-  a single hand-written tactical prompt. Lives in the repo root.
-- **v2** — a hand-rolled multi-component GEPA harness (2-module pipeline +
-  reflective prompt evolution, graded by Stockfish) that automatically tunes
-  the LLM's system prompts and improves play by **−57% mean centipawn loss
-  on held-out positions (blunder rate 15% → 3%, 5× fewer)** compared to the
-  v1 prompt. Lives in [`v2/`](v2/).
+## Headline result
 
-> **Start here for the optimization writeup:** [v2/METHODOLOGY.md](v2/METHODOLOGY.md)
+A hand-rolled multi-component GEPA optimizer evolved the v2 system prompts
+against Stockfish on a $10 budget. Evaluated on **40 held-out positions
+the optimizer never saw** (`seed=999`):
+
+| Setup | mean cp_loss | legal | fmt | blunder >200cp | perfect =0cp |
+|---|---|---|---|---|---|
+| v1 baseline (single-call, hand-written prompt) | 116.8 | 0.97 | 1.00 | 15% | 15% |
+| v2 pipeline with unoptimized seed prompts | 141.5 | 1.00 | 1.00 | 23% | 10% |
+| **v2 pipeline with GEPA-evolved prompts** | **50.0** | 1.00 | 0.97 | **3%** | **25%** |
+
+**v1 → v2-optimized: −66.8 cp_loss (−57%), 5× fewer blunders, 67% more
+perfect moves.** Surprising finding: the harness change alone (v2 seed row)
+is actually a pessimization — GEPA's prompt evolution is doing all the
+real work. Full writeup: [**v2/METHODOLOGY.md**](v2/METHODOLOGY.md).
+
+## Variants
+
+- **v1** — interactive pygame GUI, one LLM call per AI move with a
+  hand-written tactical prompt. Lives in the repo root + `python-chess-ai-yt/`.
+- **v2** — the GEPA optimizer that produced the result above, plus a
+  single-file drop-in controller
+  (`python-chess-ai-yt/src/ai_controller_v2.py`) you can swap into the
+  GUI to **play against the optimized prompts directly**. Lives in
+  [`v2/`](v2/).
+
+### Quickstart: play against v2 in the GUI
+
+```bash
+uv sync
+echo "OPENROUTER_API_KEY=sk-or-v1-..." > .env  # v2 uses OpenRouter
+
+# Swap v1 -> v2 with a one-line edit in python-chess-ai-yt/src/game.py:
+#   from ai_controller import AIController
+# becomes:
+#   from ai_controller_v2 import AIControllerV2 as AIController
+
+uv run python run_gui.py
+```
+
+`ai_controller_v2.py` is self-contained: the GEPA-optimized PROPOSE and
+SELECT prompts are embedded as string constants, no `v2/` runtime imports.
 
 ---
 

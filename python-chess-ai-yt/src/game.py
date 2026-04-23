@@ -135,14 +135,20 @@ class Game:
             self.ai_controller = ai_controller
             self.ai_controller.reset()
 
-    def enable_ai(self, color='black'):
-        """Enable AI opponent."""
+    def enable_ai(self, color='black', controller_cls=None):
+        """Enable AI opponent.
+
+        controller_cls: class matching the AIController interface (get_ai_move,
+        add_opponent_move, reset). Defaults to the v1 AIController.
+        """
         try:
             self.ai_enabled = True
             self.ai_color = color
             if not self.ai_controller:
-                self.ai_controller = AIController()
-            print(f"✓ AI enabled, playing as {color}")
+                cls = controller_cls or AIController
+                self.ai_controller = cls()
+            print(f"✓ AI enabled, playing as {color} "
+                  f"(controller: {type(self.ai_controller).__name__})")
         except Exception as e:
             print(f"❌ Failed to enable AI: {e}")
             self.ai_enabled = False

@@ -5,6 +5,7 @@ from const import *
 from game import Game
 from square import Square
 from move import Move
+from controller_select import run_select
 
 
 class Main:
@@ -22,18 +23,11 @@ class Main:
         board = self.game.board
         dragger = self.game.dragger
 
-        # Ask if player wants to play against AI
-        print("\n" + "=" * 50)
-        print("Chess Game - Human vs AI")
-        print("=" * 50)
-        ai_choice = input("Play against AI? (y/n) [y]: ").strip().lower()
-        if ai_choice != "n":
-            color_choice = (
-                input("Choose your color (white/black) [white]: ").strip().lower()
-            )
-            ai_color = "white" if color_choice == "black" else "black"
-            game.enable_ai(ai_color)
-        print("\n")
+        # Pre-game setup screen — pick controller + color via pygame UI.
+        sel = run_select(screen)
+        if sel.enable_ai:
+            ai_color = "white" if sel.human_color == "black" else "black"
+            game.enable_ai(ai_color, controller_cls=sel.controller_cls)
 
         while True:
             # Check if it's AI's turn and make AI move
