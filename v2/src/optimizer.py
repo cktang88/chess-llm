@@ -111,17 +111,28 @@ def _format_trace(worst: list) -> str:
     return "\n\n".join(rows)
 
 
-def reflect(parent: PromptSet, worst_scores: list, budget: Budget) -> tuple[PromptSet, dict]:
+def reflect(parent: PromptSet, worst_scores: list, budget: Budget,
+            *, forced_module: str | None = None,
+            temperature: float | None = None) -> tuple[PromptSet, dict]:
     prompt = REFLECTION_TEMPLATE.format(
         propose_prompt=parent.propose,
         select_prompt=parent.select,
         trace_table=_format_trace(worst_scores),
     )
+    if forced_module in ("propose", "select"):
+        prompt += (
+            f"\n\n# MANDATORY OVERRIDE\n"
+            f"You MUST set \"module_to_edit\" to \"{forced_module}\" this iteration, "
+            f"regardless of your diagnosis. Even if the other module looks more at "
+            f"fault, revise the {forced_module.upper()} prompt. Find SOMETHING in it "
+            f"to improve based on the trace.\n"
+        )
     try:
         content, _ = chat(
             messages=[{"role": "user", "content": prompt}],
             budget=budget, tag="reflect",
             reasoning_effort="low",
+            temperature=temperature,
         )
     except BudgetExceeded:
         raise
@@ -150,6 +161,11 @@ def reflect(parent: PromptSet, worst_scores: list, budget: Budget) -> tuple[Prom
         new_set = PromptSet(propose=parent.propose, select=revised)
     else:
         return parent, {"error": f"unknown module_to_edit={module!r}"}
+
+    # If a forced module was requested and reflector still edited the other one,
+    # reject (reflector disobeyed the mandatory override).
+    if forced_module and module != forced_module:
+        return parent, {"error": f"reflector edited {module!r}, forced was {forced_module!r}"}
 
     return new_set, {
         "diagnosis": data.get("diagnosis", ""),
@@ -223,9 +239,20 @@ class RunState:
         (self.out_dir / "budget.json").write_text(json.dumps(self.budget.summary(), indent=2))
 
 
+def _load_warm_start(warm_dir: Path) -> PromptSet | None:
+    p_file = warm_dir / "best_propose.txt"
+    s_file = warm_dir / "best_select.txt"
+    if not (p_file.exists() and s_file.exists()):
+        return None
+    return PromptSet(propose=p_file.read_text(), select=s_file.read_text())
+
+
 def run(out_dir: Path, *, cap_usd: float, P: int = 6, T: int = 12,
         n_eval: int = 30, n_minibatch: int = 8, n_propose: int = 3,
-        n_workers: int = 4, seed: int = 0) -> RunState:
+        n_workers: int = 4, seed: int = 0,
+        warm_start: PromptSet | None = None,
+        force_module_rotation: str | None = None,
+        reflect_temperature: float | None = None) -> RunState:
     rng = random.Random(seed)
     out_dir.mkdir(parents=True, exist_ok=True)
     budget = Budget(cap_usd=cap_usd, log_path=out_dir / "calls.jsonl")
@@ -237,18 +264,19 @@ def run(out_dir: Path, *, cap_usd: float, P: int = 6, T: int = 12,
     print(f"[opt] eval={len(positions)} cap=${cap_usd} P={P} T={T} "
           f"propose_N={n_propose} workers={n_workers}")
 
-    seed_set = PromptSet(propose=PROPOSE_SEED, select=SELECT_SEED)
-    print(f"[opt] iter 0: evaluating SEED (propose={len(PROPOSE_SEED)}ch, "
-          f"select={len(SELECT_SEED)}ch)")
+    seed_set = warm_start or PromptSet(propose=PROPOSE_SEED, select=SELECT_SEED)
+    label = "WARM" if warm_start else "SEED"
+    print(f"[opt] iter 0: evaluating {label} (propose={len(seed_set.propose)}ch, "
+          f"select={len(seed_set.select)}ch)")
     try:
         seed_rep = evaluate(seed_set, positions, budget,
                             n_workers_positions=n_workers, n_propose=n_propose,
-                            tag="eval_seed")
+                            tag=f"eval_{label.lower()}")
     except BudgetExceeded as e:
-        print(f"[opt] budget exceeded during seed eval: {e}")
+        print(f"[opt] budget exceeded during {label.lower()} eval: {e}")
         return state
     state.add(seed_set, seed_rep)
-    print(f"[opt] SEED: cp={seed_rep.mean_cp_loss:.1f} "
+    print(f"[opt] {label}: cp={seed_rep.mean_cp_loss:.1f} "
           f"legal={seed_rep.legal_rate:.2f} fmt={seed_rep.fmt_rate:.2f} "
           f"spent=${budget.spent:.4f}")
     state.save()
@@ -267,12 +295,25 @@ def run(out_dir: Path, *, cap_usd: float, P: int = 6, T: int = 12,
         sorted_scores = sorted(parent_rep.scores, key=lambda s: s.cp_loss, reverse=True)
         minibatch = [asdict(s) for s in sorted_scores[:n_minibatch]]
 
+        # Optional module rotation. "alt-select-first" means odd iters force
+        # select (understudied in run_001), even iters force propose.
+        forced = None
+        if force_module_rotation == "alt-select-first":
+            forced = "select" if (t % 2 == 1) else "propose"
+        elif force_module_rotation == "alt-propose-first":
+            forced = "propose" if (t % 2 == 1) else "select"
+        elif force_module_rotation in ("propose", "select"):
+            forced = force_module_rotation
+
         print(f"[opt] iter {t}: parent={parent_key} "
               f"cp={parent_rep.mean_cp_loss:.1f} worst_loss="
-              f"{[s['cp_loss'] for s in minibatch[:3]]}")
+              f"{[s['cp_loss'] for s in minibatch[:3]]}"
+              + (f" forced={forced}" if forced else ""))
 
         try:
-            child_prompts, meta = reflect(parent_prompts, minibatch, budget)
+            child_prompts, meta = reflect(parent_prompts, minibatch, budget,
+                                          forced_module=forced,
+                                          temperature=reflect_temperature)
         except BudgetExceeded as e:
             print(f"[opt] budget exceeded in reflection: {e}")
             break
@@ -346,12 +387,25 @@ def main():
     p.add_argument("--n-propose", type=int, default=3)
     p.add_argument("--workers", type=int, default=4)
     p.add_argument("--seed", type=int, default=0)
+    p.add_argument("--warm-start-from", type=str, default=None,
+                   help="v2/runs/<run>/ dir to load best_propose.txt+best_select.txt from")
+    p.add_argument("--force-module-rotation", type=str, default=None,
+                   choices=[None, "alt-select-first", "alt-propose-first",
+                            "propose", "select"])
+    p.add_argument("--reflect-temperature", type=float, default=None)
     args = p.parse_args()
+
+    warm = _load_warm_start(Path(args.warm_start_from)) if args.warm_start_from else None
+    if args.warm_start_from and warm is None:
+        raise SystemExit(f"warm-start dir missing best_propose.txt/best_select.txt: {args.warm_start_from}")
 
     out = Path(args.out)
     state = run(out, cap_usd=args.budget, P=args.P, T=args.T,
                 n_eval=args.n_eval, n_minibatch=args.minibatch,
-                n_propose=args.n_propose, n_workers=args.workers, seed=args.seed)
+                n_propose=args.n_propose, n_workers=args.workers, seed=args.seed,
+                warm_start=warm,
+                force_module_rotation=args.force_module_rotation,
+                reflect_temperature=args.reflect_temperature)
     print(f"\n[opt] DONE. spent=${state.budget.spent:.4f}  out={out}")
     if state.population:
         best_key = max(state.population, key=lambda k: state.population[k].aggregate())
