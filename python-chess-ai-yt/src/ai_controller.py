@@ -76,7 +76,7 @@ Respond with JSON in this exact format:
 
         try:
             response = self.client.chat.completions.create(
-                model="gpt-5.2",
+                model="gpt-5.4",
                 reasoning_effort="low",
                 messages=[
                     {

@@ -19,7 +19,7 @@ from openai import OpenAI
 
 load_dotenv()
 
-MODEL = "openai/gpt-5.4-mini"
+MODEL = "openai/gpt-5.4"
 REASONING_EFFORT = "low"
 N_PROPOSE = 3
 PROPOSE_TEMPERATURE = 1.0
@@ -148,6 +148,7 @@ The chosen move MUST be one of the provided candidates, in UCI notation, and MUS
 # Parsing
 # ---------------------------------------------------------------------------
 
+
 def _parse_json(text: str) -> dict | None:
     t = text.strip()
     if t.startswith("```"):
@@ -189,6 +190,7 @@ def _parse_candidate(raw: str, board: chess.Board) -> tuple[str | None, str]:
 # Controller
 # ---------------------------------------------------------------------------
 
+
 class AIControllerV2:
     """Drop-in replacement for AIController using the 2-module GEPA-optimized pipeline."""
 
@@ -216,8 +218,10 @@ class AIControllerV2:
         try:
             resp = self.client.chat.completions.create(
                 model=self.model,
-                messages=[{"role": "system", "content": PROPOSE_PROMPT},
-                          {"role": "user", "content": user_msg}],
+                messages=[
+                    {"role": "system", "content": PROPOSE_PROMPT},
+                    {"role": "user", "content": user_msg},
+                ],
                 reasoning_effort=REASONING_EFFORT,
                 temperature=PROPOSE_TEMPERATURE,
             )
@@ -226,8 +230,9 @@ class AIControllerV2:
             print(f"  propose {style_idx} error: {e}")
             return (None, "")
 
-    def _select(self, fen: str, board: chess.Board,
-                legal_cands: list[tuple[str, str]]) -> str | None:
+    def _select(
+        self, fen: str, board: chess.Board, legal_cands: list[tuple[str, str]]
+    ) -> str | None:
         lines = [
             f"Current Position (FEN): {fen}",
             f"Side to move: {'White' if board.turn else 'Black'}",
@@ -241,8 +246,10 @@ class AIControllerV2:
         try:
             resp = self.client.chat.completions.create(
                 model=self.model,
-                messages=[{"role": "system", "content": SELECT_PROMPT},
-                          {"role": "user", "content": user_msg}],
+                messages=[
+                    {"role": "system", "content": SELECT_PROMPT},
+                    {"role": "user", "content": user_msg},
+                ],
                 reasoning_effort=REASONING_EFFORT,
                 temperature=0.0,
             )
@@ -265,6 +272,7 @@ class AIControllerV2:
             print(f"  select error: {e}")
         # Final fallback: majority vote
         from collections import Counter
+
         votes = Counter(u for u, _ in legal_cands)
         return votes.most_common(1)[0][0] if votes else None
 
@@ -280,10 +288,12 @@ class AIControllerV2:
         print("🤔 AI v2 thinking (3 parallel proposals)...")
 
         with ThreadPoolExecutor(max_workers=N_PROPOSE) as ex:
-            cands = list(ex.map(
-                lambda i: self._propose_one(fen_position, board, i),
-                range(N_PROPOSE),
-            ))
+            cands = list(
+                ex.map(
+                    lambda i: self._propose_one(fen_position, board, i),
+                    range(N_PROPOSE),
+                )
+            )
 
         legal_cands = [(u, r) for u, r in cands if u is not None]
         unique_ucis = {u for u, _ in legal_cands}
