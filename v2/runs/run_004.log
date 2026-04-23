@@ -1,0 +1,12 @@
+[opt] eval=40 cap=$3.0 P=6 T=3 propose_N=3 workers=4
+[opt] iter 0: evaluating WARM (propose=4956ch, select=3602ch)
+[opt] WARM: cp=73.5±18.7 legal=1.00 fmt=0.97 spent=$0.7847
+[opt] reflector model = openai/gpt-5.4
+[opt] iter 1: parent=272cde779ec5 cp=73.5 worst_loss=[470, 461, 319] forced=select
+[opt] iter 1: child=eec229289a91 module=select cp=66.6±17.4 (~noise) legal=1.00 fmt=0.97 accepted=True spent=$1.6032
+[opt] iter 2: parent=eec229289a91 cp=66.6 worst_loss=[552, 378, 272] forced=propose
+[opt] iter 2: child=3e3e84c41dbc module=propose cp=58.4±13.1 (~noise) legal=1.00 fmt=1.00 accepted=True spent=$2.3559
+[opt] stop: <$0.80 remaining ($0.64)
+
+[opt] DONE. spent=$2.3559  out=v2/runs/run_004
+[opt] BEST: cp=58.4 legal=1.00 fmt=1.00 key=3e3e84c41dbc

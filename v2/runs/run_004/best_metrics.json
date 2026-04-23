@@ -1,0 +1,8 @@
+{
+  "mean_cp_loss": 58.375,
+  "legal_rate": 1.0,
+  "fmt_rate": 1.0,
+  "propose_len": 6069,
+  "select_len": 4801,
+  "key": "3e3e84c41dbc"
+}

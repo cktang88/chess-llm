@@ -1,0 +1,23 @@
+{
+  "272cde779ec5": {
+    "mean_cp_loss": 73.55,
+    "legal_rate": 1.0,
+    "fmt_rate": 0.975,
+    "propose_len": 4956,
+    "select_len": 3602
+  },
+  "eec229289a91": {
+    "mean_cp_loss": 66.625,
+    "legal_rate": 1.0,
+    "fmt_rate": 0.975,
+    "propose_len": 4956,
+    "select_len": 4801
+  },
+  "3e3e84c41dbc": {
+    "mean_cp_loss": 58.375,
+    "legal_rate": 1.0,
+    "fmt_rate": 1.0,
+    "propose_len": 6069,
+    "select_len": 4801
+  }
+}

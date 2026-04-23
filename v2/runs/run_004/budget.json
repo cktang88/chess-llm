@@ -1,0 +1,49 @@
+{
+  "spent": 2.355879500000001,
+  "cap": 3.0,
+  "n_calls": 462,
+  "by_tag": {
+    "eval_warm_propose": {
+      "calls": 120,
+      "input": 163020,
+      "output": 119952,
+      "cost": 0.6231689999999999
+    },
+    "eval_warm_select": {
+      "calls": 36,
+      "input": 34884,
+      "output": 30076,
+      "cost": 0.161505
+    },
+    "reflect": {
+      "calls": 2,
+      "input": 7676,
+      "output": 3141,
+      "cost": 0.066305
+    },
+    "eval_iter1_propose": {
+      "calls": 120,
+      "input": 162903,
+      "output": 127040,
+      "cost": 0.6541132500000002
+    },
+    "eval_iter1_select": {
+      "calls": 30,
+      "input": 36341,
+      "output": 24240,
+      "cost": 0.13633575
+    },
+    "eval_iter2_propose": {
+      "calls": 120,
+      "input": 190863,
+      "output": 107930,
+      "cost": 0.5631682499999999
+    },
+    "eval_iter2_select": {
+      "calls": 34,
+      "input": 41169,
+      "output": 26757,
+      "cost": 0.15128324999999998
+    }
+  }
+}
