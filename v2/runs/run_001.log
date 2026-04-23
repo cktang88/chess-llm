@@ -1,0 +1,29 @@
+[opt] eval=30 cap=$7.5 P=6 T=12 propose_N=3 workers=4
+[opt] iter 0: evaluating SEED (propose=1493ch, select=1109ch)
+[opt] SEED: cp=120.0 legal=1.00 fmt=0.97 spent=$0.5009
+[opt] iter 1: parent=86442ddb9b4b cp=120.0 worst_loss=[699, 480, 464]
+[opt] iter 1: child=08a6f699c592 module=propose cp=110.1 legal=1.00 fmt=1.00 accepted=True spent=$1.0934
+[opt] iter 2: parent=08a6f699c592 cp=110.1 worst_loss=[658, 459, 346]
+[opt] iter 2: child=dd2c58cac315 module=propose cp=54.2 legal=1.00 fmt=1.00 accepted=True spent=$1.6890
+[opt] iter 3: parent=dd2c58cac315 cp=54.2 worst_loss=[205, 163, 160]
+[opt] iter 3: child=a86d420bcffa module=propose cp=99.6 legal=1.00 fmt=1.00 accepted=True spent=$2.2806
+[opt] iter 4: parent=dd2c58cac315 cp=54.2 worst_loss=[205, 163, 160]
+[opt] iter 4: child=a10e25f601a2 module=propose cp=102.6 legal=1.00 fmt=0.97 accepted=True spent=$2.8665
+[opt] iter 5: parent=dd2c58cac315 cp=54.2 worst_loss=[205, 163, 160]
+[opt] iter 5: child=ea229a7afaf8 module=propose cp=65.6 legal=1.00 fmt=1.00 accepted=True spent=$3.4496
+[opt] iter 6: parent=dd2c58cac315 cp=54.2 worst_loss=[205, 163, 160]
+[opt] iter 6: child=cb7cc45a28fd module=propose cp=73.3 legal=1.00 fmt=1.00 accepted=True spent=$4.0577
+[opt] iter 7: parent=dd2c58cac315 cp=54.2 worst_loss=[205, 163, 160]
+[opt] iter 7: child=4d05ff335404 module=propose cp=53.9 legal=1.00 fmt=1.00 accepted=True spent=$4.6916
+[opt] iter 8: parent=4d05ff335404 cp=53.9 worst_loss=[221, 163, 150]
+[opt] iter 8: child=ab1c79bf857f module=propose cp=58.5 legal=1.00 fmt=1.00 accepted=True spent=$5.3771
+[opt] iter 9: parent=4d05ff335404 cp=53.9 worst_loss=[221, 163, 150]
+[opt] iter 9: child=8eed36ab15bb module=propose cp=100.4 legal=1.00 fmt=1.00 accepted=False spent=$6.0049
+[opt] iter 10: parent=4d05ff335404 cp=53.9 worst_loss=[221, 163, 150]
+[opt] iter 10: child=12266a538349 module=propose cp=71.2 legal=1.00 fmt=1.00 accepted=True spent=$6.5960
+[opt] iter 11: parent=4d05ff335404 cp=53.9 worst_loss=[221, 163, 150]
+[opt] iter 11: child=556b42147dee module=propose cp=106.0 legal=1.00 fmt=1.00 accepted=False spent=$7.2163
+[opt] stop: <$0.80 remaining ($0.28)
+
+[opt] DONE. spent=$7.2163  out=v2/runs/run_001
+[opt] BEST: cp=53.9 legal=1.00 fmt=1.00 key=4d05ff335404

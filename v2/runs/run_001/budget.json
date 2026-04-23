@@ -1,0 +1,157 @@
+{
+  "spent": 7.2163461,
+  "cap": 7.5,
+  "n_calls": 1384,
+  "by_tag": {
+    "eval_seed_propose": {
+      "calls": 90,
+      "input": 56487,
+      "output": 81134,
+      "cost": 0.40746825000000003
+    },
+    "eval_seed_select": {
+      "calls": 23,
+      "input": 10291,
+      "output": 19057,
+      "cost": 0.09347475
+    },
+    "reflect": {
+      "calls": 11,
+      "input": 29570,
+      "output": 12516,
+      "cost": 0.06761310000000001
+    },
+    "eval_iter1_propose": {
+      "calls": 90,
+      "input": 78087,
+      "output": 92013,
+      "cost": 0.47262375
+    },
+    "eval_iter1_select": {
+      "calls": 25,
+      "input": 11215,
+      "output": 23529,
+      "cost": 0.11429175
+    },
+    "eval_iter2_propose": {
+      "calls": 90,
+      "input": 89247,
+      "output": 93758,
+      "cost": 0.48884624999999987
+    },
+    "eval_iter2_select": {
+      "calls": 21,
+      "input": 9366,
+      "output": 20781,
+      "cost": 0.10053899999999999
+    },
+    "eval_iter3_propose": {
+      "calls": 90,
+      "input": 97797,
+      "output": 90850,
+      "cost": 0.4821727500000002
+    },
+    "eval_iter3_select": {
+      "calls": 24,
+      "input": 10729,
+      "output": 20961,
+      "cost": 0.10237125000000001
+    },
+    "eval_iter4_propose": {
+      "calls": 90,
+      "input": 98877,
+      "output": 87027,
+      "cost": 0.46577925
+    },
+    "eval_iter4_select": {
+      "calls": 25,
+      "input": 11248,
+      "output": 23489,
+      "cost": 0.11413650000000002
+    },
+    "eval_iter5_propose": {
+      "calls": 90,
+      "input": 96627,
+      "output": 88348,
+      "cost": 0.4700362500000001
+    },
+    "eval_iter5_select": {
+      "calls": 26,
+      "input": 11635,
+      "output": 21967,
+      "cost": 0.10757775000000001
+    },
+    "eval_iter6_propose": {
+      "calls": 90,
+      "input": 97977,
+      "output": 94302,
+      "cost": 0.49784175
+    },
+    "eval_iter6_select": {
+      "calls": 25,
+      "input": 11246,
+      "output": 21393,
+      "cost": 0.104703
+    },
+    "eval_iter7_propose": {
+      "calls": 90,
+      "input": 97167,
+      "output": 101220,
+      "cost": 0.5283652499999998
+    },
+    "eval_iter7_select": {
+      "calls": 25,
+      "input": 11219,
+      "output": 20367,
+      "cost": 0.10006575
+    },
+    "eval_iter8_propose": {
+      "calls": 90,
+      "input": 109767,
+      "output": 106021,
+      "cost": 0.5594197500000003
+    },
+    "eval_iter8_select": {
+      "calls": 26,
+      "input": 11640,
+      "output": 24306,
+      "cost": 0.11810700000000003
+    },
+    "eval_iter9_propose": {
+      "calls": 90,
+      "input": 103197,
+      "output": 97043,
+      "cost": 0.5140912499999999
+    },
+    "eval_iter9_select": {
+      "calls": 24,
+      "input": 10781,
+      "output": 22186,
+      "cost": 0.10792275000000003
+    },
+    "eval_iter10_propose": {
+      "calls": 90,
+      "input": 107247,
+      "output": 88019,
+      "cost": 0.47652074999999994
+    },
+    "eval_iter10_select": {
+      "calls": 26,
+      "input": 11610,
+      "output": 22121,
+      "cost": 0.108252
+    },
+    "eval_iter11_propose": {
+      "calls": 90,
+      "input": 107337,
+      "output": 96001,
+      "cost": 0.51250725
+    },
+    "eval_iter11_select": {
+      "calls": 23,
+      "input": 10326,
+      "output": 20861,
+      "cost": 0.10161900000000003
+    }
+  }
+}
