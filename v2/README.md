@@ -5,6 +5,10 @@ Optimizes a 2-module chess harness on top of `openai/gpt-5.4-mini`
 single-call baseline. Stockfish grades every move; reflective prompt evolution
 improves the prompts inside a $10 budget.
 
+**For a full writeup of the methodology — why GEPA, why a 2-module harness,
+how the reflector works, hyperparameter choices, and results — see
+[METHODOLOGY.md](METHODOLOGY.md).**
+
 ## Harness shape
 
 ```
