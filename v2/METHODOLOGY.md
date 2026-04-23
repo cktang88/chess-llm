@@ -3,8 +3,8 @@
 This document describes how v2 was built: the problem framing, the design
 choices, the optimizer we used, the trade-offs we made, and what we got out
 the other side. Intended for a reviewer who already knows the basics of LLM
-tool use and prompt engineering but hasn't read the GEPA / Maestro / RoboPHD
-papers.
+tool use and prompt engineering but hasn't read the GEPA paper (we looked
+at Maestro and RoboPHD before choosing GEPA — more in §4).
 
 ## 1. The problem
 
@@ -125,21 +125,48 @@ truncation with extra noise. Maestro is the closest "strictly better"
 candidate — but (a) its edit operators target graph structure which we
 don't have, and (b) no public code at the time we built this.
 
-**From Maestro we did borrow one idea** (sometimes called "edit priority"):
-the reflector's output explicitly picks *which module to edit* on each
-iteration, not just what the edit is. This is ~10 lines of JSON schema in
-our reflector template. It gives the reflector a simple way to spend its
-mutation budget on the module that's most at fault.
+**Correction on what we actually borrowed.** Earlier versions of this
+doc claimed we borrowed "edit priority" from Maestro and "no train/val
+split" from RoboPHD. That was overclaim:
 
-**From RoboPHD** we borrowed one idea: no train/val split. With ~44
-positions and a $10 cap, a holdout split costs us variance without buying
-anti-overfit protection. We evaluate on all training positions during
-optimization and use a fresh RNG seed for held-out evaluation.
+- The reflector picking `module_to_edit` per iteration is just how
+  multi-component GEPA works when you have >1 artifact to optimize —
+  it's baseline GEPA behavior, not a Maestro contribution. Maestro's
+  real novelty is optimizing graph structure and per-node configs,
+  which we don't do.
+- "No train/val split" with N=44 isn't a RoboPHD technique — it's
+  standard practice at small-data scale. RoboPHD's real contribution is
+  Elo tournament selection, which we explicitly do *not* use.
 
-**We decided not to use DSPy.** A single move-generation call wrapped in
-`dspy.Module` + Signature adapters just adds friction; the hand-rolled
-~250-line optimizer is easier to reason about and lets us format Stockfish
-feedback exactly how we want.
+So to be accurate: we implemented **plain multi-component GEPA by
+hand**, with three Stockfish-specific customizations:
+
+1. The reflection prompt is tailored to chess: it renders the trace as
+   a position-by-position table of (FEN, proposer candidates, SELECT
+   choice, Stockfish best, cp_loss). This is what lets the reflector
+   make concrete diagnoses like "best move wasn't proposed at all; edit
+   PROPOSE to consider quiet moves."
+2. A 3-objective Pareto front `(-cp_loss, legal_rate, fmt_rate)` so
+   the optimizer can't "improve" cp_loss by producing illegal or
+   malformed moves.
+3. Evaluator is parallelized over positions with one Stockfish process
+   per worker so grading doesn't bottleneck the run.
+
+**Why hand-roll instead of `pip install gepa`?** Two reasons worth being
+honest about:
+
+- **Pro hand-roll:** direct control over the Stockfish-specific
+  reflection trace, no adapter layer between our 2-module pipeline and
+  the optimizer, debug speed while iterating.
+- **Against:** the gepa package almost certainly has better defaults
+  for merge/crossover, Pareto epsilon, and minibatch sampling — things
+  we're rediscovering in run_002 / run_003 as tweaks. If the run_003
+  plateau persists after the reflector / memory / σ-gating changes, a
+  library apples-to-apples comparison (run_004) is on the table.
+
+**We decided not to use DSPy** because wrapping a single move-generation
+call in `dspy.Module` + Signature adapters added more friction than it
+saved for this size of project.
 
 ## 5. The optimizer (hand-rolled GEPA)
 

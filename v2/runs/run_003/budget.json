@@ -1,0 +1,19 @@
+{
+  "spent": 0.7484699999999997,
+  "cap": 6.0,
+  "n_calls": 149,
+  "by_tag": {
+    "eval_warm_propose": {
+      "calls": 120,
+      "input": 129417,
+      "output": 114209,
+      "cost": 0.6110032499999998
+    },
+    "eval_warm_select": {
+      "calls": 29,
+      "input": 19981,
+      "output": 27218,
+      "cost": 0.13746675
+    }
+  }
+}

@@ -1,0 +1,19 @@
+[opt] eval=30 cap=$4.5 P=6 T=12 propose_N=3 workers=4
+[opt] iter 0: evaluating WARM (propose=3687ch, select=1109ch)
+[opt] WARM: cp=64.9 legal=1.00 fmt=1.00 spent=$0.5144
+[opt] iter 1: parent=4d05ff335404 cp=64.9 worst_loss=[470, 205, 202] forced=select
+[opt] iter 1: child=6041f7ce6790 module=select cp=77.8 legal=1.00 fmt=1.00 accepted=True spent=$1.0879
+[opt] iter 2: parent=4d05ff335404 cp=64.9 worst_loss=[470, 205, 202] forced=propose
+[opt] iter 2: child=4f075ff287ca module=propose cp=84.4 legal=1.00 fmt=1.00 accepted=True spent=$1.5909
+[opt] iter 3: parent=4d05ff335404 cp=64.9 worst_loss=[470, 205, 202] forced=select
+[opt] iter 3: child=97e7d79a7b83 module=select cp=37.5 legal=1.00 fmt=1.00 accepted=True spent=$2.1480
+[opt] iter 4: parent=97e7d79a7b83 cp=37.5 worst_loss=[336, 130, 129] forced=propose
+[opt] iter 4: child=762e9b50fb39 module=propose cp=85.7 legal=1.00 fmt=1.00 accepted=True spent=$2.7105
+[opt] iter 5: parent=97e7d79a7b83 cp=37.5 worst_loss=[336, 130, 129] forced=select
+[opt] iter 5: child=8fa59627241e module=select cp=56.5 legal=1.00 fmt=0.97 accepted=True spent=$3.2307
+[opt] iter 6: parent=97e7d79a7b83 cp=37.5 worst_loss=[336, 130, 129] forced=propose
+[opt] iter 6: child=0e8dcf6b84e4 module=propose cp=43.1 legal=1.00 fmt=0.97 accepted=True spent=$3.7707
+[opt] stop: <$0.80 remaining ($0.73)
+
+[opt] DONE. spent=$3.7707  out=v2/runs/run_002
+[opt] BEST: cp=37.5 legal=1.00 fmt=1.00 key=97e7d79a7b83

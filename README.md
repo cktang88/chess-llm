@@ -196,6 +196,7 @@ uv run python -c "from v2.src.evaluator import load_positions; print(len(load_po
 ## Credits
 
 - Pygame chess GUI based on python-chess-ai-yt
-- v2 optimization methodology derived from the GEPA paper (Agrawal et al. 2025),
-  with ideas borrowed from Maestro (edit-priority) and RoboPHD (validation-free
-  evaluation). See [v2/METHODOLOGY.md](v2/METHODOLOGY.md) for citations.
+- v2 optimization is hand-rolled multi-component GEPA (Agrawal et al. 2025)
+  with Stockfish-specific reflection-prompt formatting. See
+  [v2/METHODOLOGY.md](v2/METHODOLOGY.md) §4 for the algorithm landscape
+  (Maestro, RoboPHD, ADAS, AlphaEvolve) and why we picked GEPA.

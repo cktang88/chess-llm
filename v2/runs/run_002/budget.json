@@ -1,0 +1,97 @@
+{
+  "spent": 3.7707270000000013,
+  "cap": 4.5,
+  "n_calls": 809,
+  "by_tag": {
+    "eval_warm_propose": {
+      "calls": 90,
+      "input": 96648,
+      "output": 77120,
+      "cost": 0.41952599999999995
+    },
+    "eval_warm_select": {
+      "calls": 23,
+      "input": 10312,
+      "output": 19372,
+      "cost": 0.094908
+    },
+    "reflect": {
+      "calls": 6,
+      "input": 17709,
+      "output": 5784,
+      "cost": 0.03239775
+    },
+    "eval_iter1_propose": {
+      "calls": 90,
+      "input": 96648,
+      "output": 86246,
+      "cost": 0.460593
+    },
+    "eval_iter1_select": {
+      "calls": 26,
+      "input": 17030,
+      "output": 21113,
+      "cost": 0.10778099999999999
+    },
+    "eval_iter2_propose": {
+      "calls": 90,
+      "input": 105108,
+      "output": 72638,
+      "cost": 0.40570199999999995
+    },
+    "eval_iter2_select": {
+      "calls": 21,
+      "input": 9340,
+      "output": 18752,
+      "cost": 0.09138900000000001
+    },
+    "eval_iter3_propose": {
+      "calls": 90,
+      "input": 96648,
+      "output": 82547,
+      "cost": 0.44394749999999994
+    },
+    "eval_iter3_select": {
+      "calls": 25,
+      "input": 17105,
+      "output": 21469,
+      "cost": 0.10943924999999996
+    },
+    "eval_iter4_propose": {
+      "calls": 90,
+      "input": 103038,
+      "output": 79395,
+      "cost": 0.43455599999999994
+    },
+    "eval_iter4_select": {
+      "calls": 28,
+      "input": 19068,
+      "output": 23633,
+      "cost": 0.1206495
+    },
+    "eval_iter5_propose": {
+      "calls": 90,
+      "input": 96648,
+      "output": 76616,
+      "cost": 0.41725799999999996
+    },
+    "eval_iter5_select": {
+      "calls": 26,
+      "input": 21154,
+      "output": 18423,
+      "cost": 0.09876899999999998
+    },
+    "eval_iter6_propose": {
+      "calls": 90,
+      "input": 103004,
+      "output": 81004,
+      "cost": 0.4417709999999999
+    },
+    "eval_iter6_select": {
+      "calls": 24,
+      "input": 16424,
+      "output": 17716,
+      "cost": 0.09204
+    }
+  }
+}

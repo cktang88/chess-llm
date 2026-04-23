@@ -1,0 +1,5 @@
+[opt] eval=40 cap=$6.0 P=6 T=10 propose_N=3 workers=4
+[opt] iter 0: evaluating WARM (propose=3687ch, select=2261ch)
+[opt] WARM: cp=75.7±16.4 legal=1.00 fmt=1.00 spent=$0.7485
+[opt] reflector model = openai/gpt-5.4
+[opt] iter 1: parent=97e7d79a7b83 cp=75.7 worst_loss=[395, 369, 302] forced=select

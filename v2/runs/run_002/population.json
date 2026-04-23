@@ -1,0 +1,44 @@
+{
+  "4d05ff335404": {
+    "mean_cp_loss": 64.93333333333334,
+    "legal_rate": 1.0,
+    "fmt_rate": 1.0,
+    "propose_len": 3687,
+    "select_len": 1109
+  },
+  "6041f7ce6790": {
+    "mean_cp_loss": 77.8,
+    "legal_rate": 1.0,
+    "fmt_rate": 1.0,
+    "propose_len": 3687,
+    "select_len": 2115
+  },
+  "4f075ff287ca": {
+    "mean_cp_loss": 84.43333333333334,
+    "legal_rate": 1.0,
+    "fmt_rate": 1.0,
+    "propose_len": 4182,
+    "select_len": 1109
+  },
+  "97e7d79a7b83": {
+    "mean_cp_loss": 37.46666666666667,
+    "legal_rate": 1.0,
+    "fmt_rate": 1.0,
+    "propose_len": 3687,
+    "select_len": 2261
+  },
+  "8fa59627241e": {
+    "mean_cp_loss": 56.46666666666667,
+    "legal_rate": 1.0,
+    "fmt_rate": 0.9666666666666667,
+    "propose_len": 3687,
+    "select_len": 2916
+  },
+  "0e8dcf6b84e4": {
+    "mean_cp_loss": 43.06666666666667,
+    "legal_rate": 1.0,
+    "fmt_rate": 0.9666666666666667,
+    "propose_len": 4012,
+    "select_len": 2261
+  }
+}
