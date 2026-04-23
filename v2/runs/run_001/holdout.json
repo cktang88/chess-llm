@@ -1,0 +1,38 @@
+{
+  "note": "Extracted from console output of the held-out eval. The full eval completed successfully; only the final JSON serialization raised a dict-vs-dataclass AttributeError (fixed in evaluate.py for next time). Blunder/perfect breakdown not captured here — would require a re-run.",
+  "holdout_set_size": 30,
+  "rng_seed": 999,
+  "rows": [
+    {
+      "name": "v1_baseline_singlecall",
+      "mean_cp_loss": 139.0,
+      "legal_rate": 1.00,
+      "fmt_rate": 1.00,
+      "spent": 0.1734,
+      "n_positions": 30
+    },
+    {
+      "name": "v2_seed_pipeline",
+      "mean_cp_loss": 110.6,
+      "legal_rate": 1.00,
+      "fmt_rate": 1.00,
+      "spent": 0.4254,
+      "n_positions": 30
+    },
+    {
+      "name": "v2_optimized_pipeline",
+      "mean_cp_loss": 81.3,
+      "legal_rate": 1.00,
+      "fmt_rate": 1.00,
+      "spent": 0.5464,
+      "n_positions": 30
+    }
+  ],
+  "deltas_cp_loss": {
+    "v1_baseline_to_v2_seed": -28.4,
+    "v2_seed_to_v2_optimized": -29.3,
+    "total_v1_to_v2_optimized": -57.7,
+    "pct_reduction_total": 0.415
+  },
+  "total_spent": 1.1452
+}

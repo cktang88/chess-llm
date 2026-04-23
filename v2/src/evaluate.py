@@ -33,14 +33,18 @@ class SummaryRow:
     spent: float
 
 
+def _cp(s) -> int:
+    return s["cp_loss"] if isinstance(s, dict) else s.cp_loss
+
+
 def _summarize_pipeline(name: str, rep, spent: float) -> SummaryRow:
     return SummaryRow(
         name=name,
         mean_cp_loss=rep.mean_cp_loss,
         legal_rate=rep.legal_rate,
         fmt_rate=rep.fmt_rate,
-        blunder_rate=sum(1 for s in rep.scores if s.cp_loss > 200) / max(1, len(rep.scores)),
-        perfect_rate=sum(1 for s in rep.scores if s.cp_loss == 0) / max(1, len(rep.scores)),
+        blunder_rate=sum(1 for s in rep.scores if _cp(s) > 200) / max(1, len(rep.scores)),
+        perfect_rate=sum(1 for s in rep.scores if _cp(s) == 0) / max(1, len(rep.scores)),
         n_positions=len(rep.scores),
         spent=spent,
     )
