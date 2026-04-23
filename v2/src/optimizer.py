@@ -1,17 +1,19 @@
-"""GEPA-style reflective prompt evolution for chess LLM.
+"""Multi-prompt GEPA: jointly optimize {propose_prompt, select_prompt}.
 
-Hand-rolled per recommendation in v2/tmp/research_optimizers.md.
-- Population P=6, iterations T<=16, eval set N=40
-- Pareto on (-cp_loss, legal_rate, fmt_rate)
-- Reflection minibatch = 8 worst-CP-loss positions
-- Maestro tweak: reflector picks which section of prompt to edit
-- autocontext tweak: "refine, don't rewrite" instruction
+Based on v2/tmp/research_optimizers.md, with lite C (Maestro edit-priority):
+the reflector sees the parent PromptSet + worst-case traces and picks ONE
+module ("propose" or "select") to revise.
+
+- Population P=6 PromptSets
+- Iterations T=12 (tighter than single-prompt because each eval is ~4x cost)
+- Eval set = 30 positions
+- Minibatch = 8 worst-cp positions
+- 3-objective Pareto on (-cp_loss, legal_rate, fmt_rate)
 """
 
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import random
 import time
@@ -19,13 +21,10 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 from .budget import Budget, BudgetExceeded
-from .evaluator import EvalReport, evaluate, load_positions, report_to_dict
-from .player import call_llm_text
-from .seed_prompt import SEED_PROMPT
-
-
-def _hash(s: str) -> str:
-    return hashlib.sha1(s.encode()).hexdigest()[:10]
+from .evaluator import EvalReport, evaluate, load_positions
+from .llm import chat
+from .pipeline import PromptSet
+from .seed_prompts import PROPOSE_SEED, SELECT_SEED
 
 
 def _dominates(a: tuple[float, ...], b: tuple[float, ...]) -> bool:
@@ -42,61 +41,94 @@ def pareto_front(scored: dict[str, EvalReport]) -> list[str]:
     return front
 
 
-REFLECTION_TEMPLATE = """You are refining an existing system prompt for a chess-playing LLM.
-Do NOT rewrite from scratch. Keep what works; surgically fix the failure modes shown below.
+REFLECTION_TEMPLATE = """You are refining a 2-module chess-playing LLM pipeline.
 
-# CURRENT SYSTEM PROMPT
-<<<PROMPT>>>
-{parent_prompt}
-<<<END_PROMPT>>>
+The pipeline has two modules, each a system prompt:
+- PROPOSE: called 3 times in parallel (temperature 1.0) to suggest diverse candidate moves.
+- SELECT:  called once on the legal, de-duplicated candidates to pick the best.
+
+Your job: identify the dominant failure mode from the trace, pick ONE module
+to edit, and output the revised prompt for that module. Keep the other module's
+prompt unchanged. Do NOT rewrite from scratch — keep what works, surgically
+fix what doesn't.
+
+# CURRENT PROPOSE PROMPT
+<<<PROPOSE>>>
+{propose_prompt}
+<<<END_PROPOSE>>>
+
+# CURRENT SELECT PROMPT
+<<<SELECT>>>
+{select_prompt}
+<<<END_SELECT>>>
 
 # FAILURE TRACE
-The model played the moves below. Stockfish (depth 14) graded them.
-Centipawn loss: how much worse the played move was than the engine best.
-Top engine candidates show what the model could have played.
+The pipeline was run on the positions below. Stockfish (depth 14) graded the
+final selected move. For each position you see: the FEN, all 3 proposer
+candidate moves (with their reasoning), whether SELECT was used and what it
+chose, what Stockfish's best move was, and the centipawn loss.
 
 {trace_table}
 
-# YOUR TASK
-1. Identify the dominant failure mode in the trace (e.g. tactical blindness,
-   poor opening repertoire, weak endgame technique, format errors, illegal moves).
-2. Pick ONE section of the current prompt to revise (or add a new section if
-   the issue isn't covered). Sections are separated by markdown headers (#, ##).
-3. Output the FULL revised system prompt. Keep edits minimal and targeted.
+# DIAGNOSIS GUIDE
+Ask: was the best move ever proposed?
+- If Stockfish's best move appears among the proposer candidates, but SELECT
+  did not pick it, SELECT is at fault. Edit SELECT.
+- If the best move does not appear in any proposer candidate (or proposers
+  disagree wildly on bad moves), PROPOSE is at fault. Edit PROPOSE.
+- If candidates are often illegal or malformed JSON, PROPOSE's output format
+  section needs strengthening.
 
-Constraints:
-- Keep the prompt under 6000 characters total.
-- The prompt MUST instruct the model to respond with JSON containing a UCI move.
-- Do NOT remove the rule that the move must be legal in the position.
+# RULES
+- Keep the edited prompt under 5000 characters.
+- Keep JSON output + UCI notation rules intact.
+- Do not remove the instruction that moves must be legal.
 
-Respond with JSON:
+# OUTPUT — JSON ONLY, no markdown fences:
 {{
-  "diagnosis": "<2-3 sentences naming the failure mode>",
-  "section_edited": "<header text or 'NEW: <name>'>",
-  "revised_prompt": "<the FULL revised system prompt as a single string>"
+  "diagnosis": "<2-3 sentences: the failure mode you identified>",
+  "module_to_edit": "propose" | "select",
+  "revised_prompt": "<the FULL revised prompt for the chosen module>"
 }}
 """
 
 
 def _format_trace(worst: list) -> str:
-    rows = ["| FEN | played | best | cp_loss | legal | top_engine_candidates |",
-            "|---|---|---|---|---|---|"]
+    rows = []
     for s in worst:
-        cands = ", ".join(f"{c['uci']}({c['eval_cp']:+d})"
-                          for c in s.get("top_k", [])[:3]) if s.get("top_k") else ""
-        rows.append(f"| {s['fen']} | {s['move_uci']} | {s['best_uci']} | "
-                    f"{s['cp_loss']} | {s['legal']} | {cands} |")
-    return "\n".join(rows)
+        cands = "; ".join(
+            f"{m}({r[:60]})" if r else f"{m}(?)"
+            for m, r in zip(s["candidate_moves"], s["candidate_reasonings"])
+        )
+        sel = "SELECT->" + (s["move_uci"] or "NONE") if s["selector_used"] else "UNANIMOUS->" + (s["move_uci"] or "NONE")
+        rows.append(
+            f"- FEN: {s['fen']}\n"
+            f"  proposers: [{cands}]\n"
+            f"  {sel}\n"
+            f"  stockfish best: {s['best_uci']}  (played eval {s.get('played_eval_cp')}, best eval {s['best_eval_cp']})\n"
+            f"  cp_loss={s['cp_loss']}  legal={s['legal']}  fmt_ok={s['fmt_ok']}"
+        )
+    return "\n\n".join(rows)
 
 
-def reflect(parent_prompt: str, worst_scores: list, budget: Budget) -> tuple[str, dict]:
-    """Ask reflector LM for a revised prompt. Returns (revised_prompt, meta)."""
+def reflect(parent: PromptSet, worst_scores: list, budget: Budget) -> tuple[PromptSet, dict]:
     prompt = REFLECTION_TEMPLATE.format(
-        parent_prompt=parent_prompt,
+        propose_prompt=parent.propose,
+        select_prompt=parent.select,
         trace_table=_format_trace(worst_scores),
     )
-    raw = call_llm_text(prompt=prompt, budget=budget, tag="reflect")
-    text = raw.strip()
+    try:
+        content, _ = chat(
+            messages=[{"role": "user", "content": prompt}],
+            budget=budget, tag="reflect",
+            reasoning_effort="low",
+        )
+    except BudgetExceeded:
+        raise
+    except Exception as e:
+        return parent, {"error": f"reflect call failed: {e}"}
+
+    text = content.strip()
     if text.startswith("```"):
         lines = text.split("\n")
         text = "\n".join(lines[1:-1]) if len(lines) > 2 else text
@@ -104,24 +136,35 @@ def reflect(parent_prompt: str, worst_scores: list, budget: Budget) -> tuple[str
             text = text.lstrip()[4:].strip()
     try:
         data = json.loads(text)
-        revised = data.get("revised_prompt", "").strip()
-        meta = {"diagnosis": data.get("diagnosis", ""),
-                "section_edited": data.get("section_edited", ""),
-                "raw_len": len(raw)}
-        if revised and len(revised) <= 6000:
-            return revised, meta
     except Exception as e:
-        return parent_prompt, {"error": f"parse failed: {e}", "raw": raw[:300]}
-    return parent_prompt, {"error": "no revised_prompt", "raw": raw[:300]}
+        return parent, {"error": f"parse failed: {e}", "raw": content[:300]}
+
+    module = data.get("module_to_edit", "")
+    revised = (data.get("revised_prompt") or "").strip()
+    if not revised or len(revised) > 7000:
+        return parent, {"error": f"bad revised_prompt len={len(revised)}"}
+
+    if module == "propose":
+        new_set = PromptSet(propose=revised, select=parent.select)
+    elif module == "select":
+        new_set = PromptSet(propose=parent.propose, select=revised)
+    else:
+        return parent, {"error": f"unknown module_to_edit={module!r}"}
+
+    return new_set, {
+        "diagnosis": data.get("diagnosis", ""),
+        "module_to_edit": module,
+        "revised_len": len(revised),
+    }
 
 
 @dataclass
 class IterationLog:
     iter: int
-    parent_hash: str
-    child_hash: str
+    parent_key: str
+    child_key: str
+    module_edited: str
     diagnosis: str
-    section_edited: str
     parent_score: tuple
     child_score: tuple | None
     accepted: bool
@@ -132,33 +175,46 @@ class IterationLog:
 class RunState:
     out_dir: Path
     budget: Budget
-    population: dict[str, EvalReport] = field(default_factory=dict)
+    population: dict[str, EvalReport] = field(default_factory=dict)  # key = PromptSet.key()
+    prompts_by_key: dict[str, PromptSet] = field(default_factory=dict)
     iterations: list[IterationLog] = field(default_factory=list)
     started_at: float = field(default_factory=time.time)
 
+    def add(self, prompts: PromptSet, report: EvalReport) -> str:
+        k = prompts.key()
+        self.prompts_by_key[k] = prompts
+        self.population[k] = report
+        return k
+
     def save(self) -> None:
         self.out_dir.mkdir(parents=True, exist_ok=True)
-        # Best by aggregate (lex order: cp first, then legal, then fmt)
+        if not self.population:
+            return
         best_key = max(self.population.keys(),
                        key=lambda k: self.population[k].aggregate())
+        best_prompts = self.prompts_by_key[best_key]
         best_rep = self.population[best_key]
-        (self.out_dir / "best_prompt.txt").write_text(best_key_text := best_rep.prompt)
+
+        (self.out_dir / "best_propose.txt").write_text(best_prompts.propose)
+        (self.out_dir / "best_select.txt").write_text(best_prompts.select)
         (self.out_dir / "best_metrics.json").write_text(json.dumps({
             "mean_cp_loss": best_rep.mean_cp_loss,
             "legal_rate": best_rep.legal_rate,
             "fmt_rate": best_rep.fmt_rate,
-            "prompt_len": len(best_rep.prompt),
-            "prompt_hash": _hash(best_rep.prompt),
+            "propose_len": len(best_prompts.propose),
+            "select_len": len(best_prompts.select),
+            "key": best_key,
         }, indent=2))
-        # Per-candidate metrics
+
         pop_summary = {
-            _hash(p): {
+            k: {
                 "mean_cp_loss": r.mean_cp_loss,
                 "legal_rate": r.legal_rate,
                 "fmt_rate": r.fmt_rate,
-                "prompt_len": len(p),
+                "propose_len": len(self.prompts_by_key[k].propose),
+                "select_len": len(self.prompts_by_key[k].select),
             }
-            for p, r in self.population.items()
+            for k, r in self.population.items()
         }
         (self.out_dir / "population.json").write_text(json.dumps(pop_summary, indent=2))
         (self.out_dir / "iterations.jsonl").write_text(
@@ -167,9 +223,9 @@ class RunState:
         (self.out_dir / "budget.json").write_text(json.dumps(self.budget.summary(), indent=2))
 
 
-def run(out_dir: Path, *, cap_usd: float, P: int = 6, T: int = 16,
-        n_eval: int = 40, n_minibatch: int = 8, seed: int = 0,
-        n_workers: int = 8) -> RunState:
+def run(out_dir: Path, *, cap_usd: float, P: int = 6, T: int = 12,
+        n_eval: int = 30, n_minibatch: int = 8, n_propose: int = 3,
+        n_workers: int = 4, seed: int = 0) -> RunState:
     rng = random.Random(seed)
     out_dir.mkdir(parents=True, exist_ok=True)
     budget = Budget(cap_usd=cap_usd, log_path=out_dir / "calls.jsonl")
@@ -178,88 +234,101 @@ def run(out_dir: Path, *, cap_usd: float, P: int = 6, T: int = 16,
     positions = load_positions()
     if len(positions) > n_eval:
         positions = rng.sample(positions, n_eval)
-    print(f"[opt] eval set = {len(positions)} positions, cap=${cap_usd}, "
-          f"P={P}, T={T}, minibatch={n_minibatch}")
+    print(f"[opt] eval={len(positions)} cap=${cap_usd} P={P} T={T} "
+          f"propose_N={n_propose} workers={n_workers}")
 
-    # Initial: evaluate seed
-    print(f"[opt] iter 0: evaluating SEED ({len(SEED_PROMPT)} chars)")
+    seed_set = PromptSet(propose=PROPOSE_SEED, select=SELECT_SEED)
+    print(f"[opt] iter 0: evaluating SEED (propose={len(PROPOSE_SEED)}ch, "
+          f"select={len(SELECT_SEED)}ch)")
     try:
-        seed_report = evaluate(SEED_PROMPT, positions, budget, n_workers=n_workers, tag="eval_seed")
+        seed_rep = evaluate(seed_set, positions, budget,
+                            n_workers_positions=n_workers, n_propose=n_propose,
+                            tag="eval_seed")
     except BudgetExceeded as e:
         print(f"[opt] budget exceeded during seed eval: {e}")
         return state
-    state.population[SEED_PROMPT] = seed_report
-    print(f"[opt] SEED: cp_loss={seed_report.mean_cp_loss:.1f} "
-          f"legal={seed_report.legal_rate:.2f} fmt={seed_report.fmt_rate:.2f} "
+    state.add(seed_set, seed_rep)
+    print(f"[opt] SEED: cp={seed_rep.mean_cp_loss:.1f} "
+          f"legal={seed_rep.legal_rate:.2f} fmt={seed_rep.fmt_rate:.2f} "
           f"spent=${budget.spent:.4f}")
+    state.save()
 
     for t in range(1, T + 1):
-        if budget.remaining() < 0.50:
-            print(f"[opt] stopping early: <$0.50 budget remaining (${budget.remaining():.2f})")
+        if budget.remaining() < 0.80:
+            print(f"[opt] stop: <$0.80 remaining (${budget.remaining():.2f})")
             break
 
-        # Pick parent uniformly from current Pareto front
         front = pareto_front(state.population)
-        parent = rng.choice(front)
-        parent_rep = state.population[parent]
+        parent_key = rng.choice(front)
+        parent_prompts = state.prompts_by_key[parent_key]
+        parent_rep = state.population[parent_key]
 
-        # Build reflection minibatch: worst CP-loss positions for this parent
+        # Minibatch: 8 worst-cp positions for this parent
         sorted_scores = sorted(parent_rep.scores, key=lambda s: s.cp_loss, reverse=True)
         minibatch = [asdict(s) for s in sorted_scores[:n_minibatch]]
 
-        print(f"[opt] iter {t}: parent={_hash(parent)} "
-              f"(cp={parent_rep.mean_cp_loss:.1f}) minibatch_top_loss="
+        print(f"[opt] iter {t}: parent={parent_key} "
+              f"cp={parent_rep.mean_cp_loss:.1f} worst_loss="
               f"{[s['cp_loss'] for s in minibatch[:3]]}")
 
-        # Reflect
         try:
-            child, meta = reflect(parent, minibatch, budget)
+            child_prompts, meta = reflect(parent_prompts, minibatch, budget)
         except BudgetExceeded as e:
-            print(f"[opt] budget exceeded during reflection: {e}")
+            print(f"[opt] budget exceeded in reflection: {e}")
             break
-        if child in state.population:
-            print(f"[opt] iter {t}: dedup (child already in pop), skipping")
+
+        if "error" in meta or child_prompts.key() == parent_key:
             state.iterations.append(IterationLog(
-                iter=t, parent_hash=_hash(parent), child_hash=_hash(child),
-                diagnosis=meta.get("diagnosis", ""),
-                section_edited=meta.get("section_edited", ""),
+                iter=t, parent_key=parent_key, child_key=child_prompts.key(),
+                module_edited=meta.get("module_to_edit", ""),
+                diagnosis=meta.get("diagnosis", meta.get("error", "")),
+                parent_score=parent_rep.aggregate(), child_score=None,
+                accepted=False, spent_after=budget.spent,
+            ))
+            print(f"[opt] iter {t}: reflection no-op ({meta.get('error', 'unchanged')})")
+            continue
+
+        child_key = child_prompts.key()
+        if child_key in state.population:
+            print(f"[opt] iter {t}: dedup, skipping child={child_key}")
+            state.iterations.append(IterationLog(
+                iter=t, parent_key=parent_key, child_key=child_key,
+                module_edited=meta["module_to_edit"], diagnosis=meta["diagnosis"],
                 parent_score=parent_rep.aggregate(), child_score=None,
                 accepted=False, spent_after=budget.spent,
             ))
             continue
 
-        # Evaluate child
         try:
-            child_rep = evaluate(child, positions, budget, n_workers=n_workers,
-                                 tag=f"eval_iter{t}")
+            child_rep = evaluate(child_prompts, positions, budget,
+                                 n_workers_positions=n_workers,
+                                 n_propose=n_propose, tag=f"eval_iter{t}")
         except BudgetExceeded as e:
-            print(f"[opt] budget exceeded during child eval iter {t}: {e}")
+            print(f"[opt] budget exceeded in child eval iter {t}: {e}")
             break
-        state.population[child] = child_rep
+        state.add(child_prompts, child_rep)
 
-        # Truncate population: keep Pareto front + top-(P - |front|) by aggregate
+        # Truncate to P
         if len(state.population) > P:
             front2 = pareto_front(state.population)
-            rest = [c for c in state.population if c not in front2]
-            rest.sort(key=lambda c: state.population[c].aggregate(), reverse=True)
+            rest = [k for k in state.population if k not in front2]
+            rest.sort(key=lambda k: state.population[k].aggregate(), reverse=True)
             keep = set(front2) | set(rest[:max(0, P - len(front2))])
             state.population = {k: v for k, v in state.population.items() if k in keep}
+            state.prompts_by_key = {k: v for k, v in state.prompts_by_key.items() if k in keep}
 
-        accepted = child in state.population
+        accepted = child_key in state.population
         state.iterations.append(IterationLog(
-            iter=t, parent_hash=_hash(parent), child_hash=_hash(child),
-            diagnosis=meta.get("diagnosis", ""),
-            section_edited=meta.get("section_edited", ""),
+            iter=t, parent_key=parent_key, child_key=child_key,
+            module_edited=meta["module_to_edit"], diagnosis=meta["diagnosis"],
             parent_score=parent_rep.aggregate(),
             child_score=child_rep.aggregate(),
             accepted=accepted, spent_after=budget.spent,
         ))
-        print(f"[opt] iter {t}: child={_hash(child)} "
+        print(f"[opt] iter {t}: child={child_key} module={meta['module_to_edit']} "
               f"cp={child_rep.mean_cp_loss:.1f} legal={child_rep.legal_rate:.2f} "
               f"fmt={child_rep.fmt_rate:.2f} accepted={accepted} "
-              f"section={meta.get('section_edited','')!r} spent=${budget.spent:.4f}")
-
-        # Save snapshot every iter
+              f"spent=${budget.spent:.4f}")
         state.save()
 
     state.save()
@@ -271,24 +340,24 @@ def main():
     p.add_argument("--budget", type=float, default=9.00)
     p.add_argument("--out", type=str, default="v2/runs/run_001")
     p.add_argument("--P", type=int, default=6)
-    p.add_argument("--T", type=int, default=16)
-    p.add_argument("--n-eval", type=int, default=40)
+    p.add_argument("--T", type=int, default=12)
+    p.add_argument("--n-eval", type=int, default=30)
     p.add_argument("--minibatch", type=int, default=8)
-    p.add_argument("--workers", type=int, default=8)
+    p.add_argument("--n-propose", type=int, default=3)
+    p.add_argument("--workers", type=int, default=4)
     p.add_argument("--seed", type=int, default=0)
     args = p.parse_args()
 
-    out_dir = Path(args.out)
-    state = run(out_dir, cap_usd=args.budget, P=args.P, T=args.T,
+    out = Path(args.out)
+    state = run(out, cap_usd=args.budget, P=args.P, T=args.T,
                 n_eval=args.n_eval, n_minibatch=args.minibatch,
-                n_workers=args.workers, seed=args.seed)
-    print(f"\n[opt] DONE. spent=${state.budget.spent:.4f} "
-          f"out={out_dir}")
+                n_propose=args.n_propose, n_workers=args.workers, seed=args.seed)
+    print(f"\n[opt] DONE. spent=${state.budget.spent:.4f}  out={out}")
     if state.population:
-        best = max(state.population, key=lambda p: state.population[p].aggregate())
-        rep = state.population[best]
-        print(f"[opt] BEST: cp_loss={rep.mean_cp_loss:.1f} "
-              f"legal={rep.legal_rate:.2f} fmt={rep.fmt_rate:.2f}")
+        best_key = max(state.population, key=lambda k: state.population[k].aggregate())
+        rep = state.population[best_key]
+        print(f"[opt] BEST: cp={rep.mean_cp_loss:.1f} "
+              f"legal={rep.legal_rate:.2f} fmt={rep.fmt_rate:.2f} key={best_key}")
 
 
 if __name__ == "__main__":

@@ -1,4 +1,8 @@
-"""Token + dollar accounting with a hard kill-switch."""
+"""Token + dollar accounting with a hard kill-switch.
+
+Prefers OpenRouter's reported per-call cost when available; falls back to a
+price-per-token estimate otherwise.
+"""
 
 from __future__ import annotations
 
@@ -8,8 +12,7 @@ import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-# Best public guess for gpt-5.4-mini pricing (per 1M tokens, USD).
-# Override via Budget(input_price=..., output_price=...) if pricing differs.
+# Fallback prices (USD per 1M tokens). Only used if upstream doesn't report cost.
 DEFAULT_INPUT_PRICE_PER_M = 0.25
 DEFAULT_OUTPUT_PRICE_PER_M = 2.00
 
@@ -26,6 +29,7 @@ class CallRecord:
     input_tokens: int
     output_tokens: int
     cost: float
+    source: str  # "reported" or "estimated"
 
 
 @dataclass
@@ -38,14 +42,20 @@ class Budget:
     calls: list[CallRecord] = field(default_factory=list)
     _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 
-    def cost_of(self, input_tokens: int, output_tokens: int) -> float:
+    def _estimate(self, input_tokens: int, output_tokens: int) -> float:
         return (input_tokens * self.input_price + output_tokens * self.output_price) / 1_000_000
 
-    def charge(self, *, tag: str, model: str, input_tokens: int, output_tokens: int) -> float:
-        cost = self.cost_of(input_tokens, output_tokens)
+    def charge(self, *, tag: str, model: str, input_tokens: int, output_tokens: int,
+               reported_cost: float | None = None) -> float:
+        if reported_cost is not None and reported_cost >= 0:
+            cost = float(reported_cost)
+            source = "reported"
+        else:
+            cost = self._estimate(input_tokens, output_tokens)
+            source = "estimated"
         with self._lock:
             self.spent += cost
-            rec = CallRecord(time.time(), tag, model, input_tokens, output_tokens, cost)
+            rec = CallRecord(time.time(), tag, model, input_tokens, output_tokens, cost, source)
             self.calls.append(rec)
             if self.log_path is not None:
                 self.log_path.parent.mkdir(parents=True, exist_ok=True)
@@ -66,4 +76,5 @@ class Budget:
             d["input"] += c.input_tokens
             d["output"] += c.output_tokens
             d["cost"] += c.cost
-        return {"spent": self.spent, "cap": self.cap_usd, "by_tag": by_tag}
+        return {"spent": self.spent, "cap": self.cap_usd, "n_calls": len(self.calls),
+                "by_tag": by_tag}
