@@ -4,10 +4,11 @@ A chess game where you play against an LLM. Two variants live in this repo:
 
 - **v1** — an interactive pygame GUI where GPT plays you move-by-move using
   a single hand-written tactical prompt. Lives in the repo root.
-- **v2** — a GEPA-style prompt-optimization harness (2-module pipeline +
+- **v2** — a hand-rolled multi-component GEPA harness (2-module pipeline +
   reflective prompt evolution, graded by Stockfish) that automatically tunes
-  the LLM's system prompts and improves play by **−42% mean centipawn loss
-  on held-out positions** compared to the v1 prompt. Lives in [`v2/`](v2/).
+  the LLM's system prompts and improves play by **−57% mean centipawn loss
+  on held-out positions (blunder rate 15% → 3%, 5× fewer)** compared to the
+  v1 prompt. Lives in [`v2/`](v2/).
 
 > **Start here for the optimization writeup:** [v2/METHODOLOGY.md](v2/METHODOLOGY.md)
 
@@ -165,21 +166,25 @@ v2/
     └── research_repos.md            # review of 4 candidate repos
 ```
 
-### Result (run_001)
+### Final result (run_004 best, held-out 40 positions, RNG seed = 999)
 
-**Held-out, 30 positions not seen by the optimizer (RNG seed = 999):**
+| Setup | mean cp_loss | legal | fmt | blunder >200cp | perfect =0cp |
+|---|---|---|---|---|---|
+| v1 baseline (single-call, v1 prompt) | 116.8 | 0.97 | 1.00 | 15% | 15% |
+| v2 seed pipeline (unoptimized prompts) | 141.5 | 1.00 | 1.00 | 23% | 10% |
+| **v2 optimized (run_001 → run_004 edits)** | **50.0** | 1.00 | 0.97 | **3%** | **25%** |
 
-| Setup | mean cp_loss | legal | fmt | cost/eval |
-|---|---|---|---|---|
-| v1 baseline (single-call, v1 prompt) | 139.0 | 1.00 | 1.00 | $0.17 |
-| v2 seed pipeline (unoptimized prompts) | 110.6 | 1.00 | 1.00 | $0.43 |
-| **v2 optimized pipeline** | **81.3** | 1.00 | 1.00 | $0.55 |
+**v1 → v2 optimized: −66.8 cp_loss (−57%). Blunder rate 15% → 3% (5× fewer).**
 
-Total v1 → v2_optimized: **−58 cp_loss (−42%)**, split roughly evenly
-between the harness change (−28) and GEPA prompt evolution (−29).
+Important: the harness change alone (v1 → v2 seed pipeline) is
+*neutral-to-negative*. Temperature=1.0 + style-hint rotation on an
+unoptimized SELECT produces diverse-but-bad candidates the filter can't
+reject. **GEPA prompt evolution (especially of SELECT, via forced module
+rotation in run_002) is what makes the pipeline win.**
 
-Full writeup, reasoning for algorithm choice, budget math, and lessons
-learned: **[v2/METHODOLOGY.md](v2/METHODOLOGY.md)**.
+Full writeup including algorithm choice, budget math, run-by-run history
+(run_001–run_004), plateau diagnosis, and lessons learned:
+**[v2/METHODOLOGY.md](v2/METHODOLOGY.md)**.
 
 ---
 

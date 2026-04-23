@@ -267,18 +267,12 @@ training eval (30 positions, seed=0):
   SEED (unoptimized propose+select pipeline):   cp_loss = 120.0
   best (iter 7):                                cp_loss =  53.9  (−55%)
   total spend: $7.22 / $7.50 cap, 1384 calls, 11 iterations completed
-
-held-out eval (30 positions, seed=999 — NOT seen by optimizer):
-  v1 baseline (single-call, v1 prompt):         cp_loss = 139.0
-  v2 seed pipeline (unoptimized prompts):       cp_loss = 110.6   (−28)
-  v2 OPTIMIZED pipeline:                        cp_loss =  81.3   (−58 total, −42%)
-  legal_rate and fmt_rate stayed at 1.00 throughout
 ```
 
-The decomposition is the interesting part: **half the gain was from the
-harness change** (single call → 3×propose+select), **half from GEPA**
-editing the PROPOSE prompt. Both contributions generalized to unseen
-positions.
+Held-out eval was initially run at n=30 and later rerun at n=40 against
+the run_004 best (which carries forward all run_001–004 edits). The n=30
+numbers suggested the harness change and GEPA split the credit 50/50;
+the n=40 numbers refuted that (see §9 for the corrected story).
 
 ### run_002 — diversity-enhanced (warm-start + forced rotation)
 
@@ -303,7 +297,23 @@ the rotation hypothesis: the reflector *would* have helped if it had
 explored SELECT. Subsequent iters regressed, consistent with one real gain
 plus noise.
 
-### Why we're adding run_003 — three known weaknesses
+### run_003, run_004 — stronger reflector + memory + σ-gating + max_tokens fix
+
+Motivation (three known weaknesses from run_001 / run_002) in more detail
+below. Short summary:
+
+- `run_003`: gpt-5.4 reflector (instead of mini), 5-iter reflector memory,
+  σ=1.5 acceptance test, n_eval=40. Warm-started from run_002 best.
+  **Got 2 real iters, then HTTP 402 on iters 3–10** because OpenRouter
+  reserves credits up-front for the model's default max_completion_tokens
+  (65536 for gpt-5.4 ≈ $1/call reserve). Run ended with cp=52.3 on seed=2,
+  9 no-op iters.
+- `run_004`: same settings + `max_tokens=8000` cap on reflect calls
+  (~$0.12 reserve each, 8× headroom). Warm-started from run_003 best.
+  2 iters completed at cap: 73.5 → 66.6 (SELECT, gpt-5.4) → 58.4 (PROPOSE,
+  gpt-5.4). Both reflect calls succeeded.
+
+### Why we added run_003 — three known weaknesses
 
 Looking honestly at the run_001 and run_002 trajectories, three specific
 weaknesses show up:
@@ -338,7 +348,32 @@ PROPOSE edits is explained by this.
 as a "PREVIOUS ATTEMPTS" section in the reflection prompt. Zero API cost,
 ~30 lines of code.
 
-### run_003 — planned combined fix
+### Final 3-way held-out comparison (n=40, seed=999, never seen by optimizer)
+
+Evaluated the **run_004 best PromptSet** (which inherits all run_001 →
+run_004 edits) against v1 baseline and unoptimized v2 seed pipeline on a
+fresh 40-position holdout:
+
+| Setup | mean cp_loss | legal | fmt | blunder >200cp | perfect =0cp | cost |
+|---|---|---|---|---|---|---|
+| v1 baseline (single-call, v1 prompt) | 116.8 | 0.97 | 1.00 | 15% | 15% | $0.23 |
+| v2 seed pipeline (unoptimized) | **141.5** | 1.00 | 1.00 | 23% | 10% | $0.64 |
+| **v2 optimized pipeline (run_004 best)** | **50.0** | 1.00 | 0.97 | **3%** | **25%** | $0.73 |
+
+**Headline result: v1 → v2 optimized: −66.8 cp (−57% reduction). Blunder
+rate 15% → 3% (5× fewer); perfect-move rate 15% → 25% (1.7× more).**
+
+**Corrected story**: earlier (n=30) we reported that the harness change
+and GEPA split the credit ~50/50. That was noise from a smaller sample.
+At n=40 on held-out, **the harness change alone is neutral to slightly
+negative** — the v2 seed pipeline (unoptimized prompts, temperature=1.0
+self-consistency) actually blunders *more* than the v1 single-call
+baseline. Temperature + style-hint rotation produces diverse *bad* moves
+that an unoptimized SELECT can't filter. **GEPA is doing essentially all
+of the win here**, by evolving prompts (especially SELECT, via the forced
+rotation in run_002) that can recognize which candidate is actually best.
+
+### run_003 — first attempt at the combined fix
 
 New flags in `src/optimizer.py`:
 
@@ -365,7 +400,19 @@ uv run python -m v2.src.optimizer \
   --out v2/runs/run_003
 ```
 
-## 9. Lessons learned
+## 9. Final result + lessons learned
+
+**Final held-out numbers (run_004 best, n=40 @ seed=999):**
+
+- v1 baseline: cp_loss = 116.8, blunder rate = 15%
+- v2 unoptimized pipeline: cp_loss = 141.5, blunder rate = 23% (regresses!)
+- **v2 optimized pipeline: cp_loss = 50.0, blunder rate = 3%**
+
+The "v2 optimized" PromptSet is the `run_004/best_{propose,select}.txt`
+snapshot, which inherits accumulated edits from all four runs (each run
+warm-started from the previous one's best).
+
+### Lessons
 
 - **Per-position grading is the right primitive.** Games are too noisy at
   this budget; positions are dense, deterministic, and parallelizable.

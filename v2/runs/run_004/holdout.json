@@ -1,0 +1,35 @@
+{
+  "rows": [
+    {
+      "name": "v1_baseline_singlecall",
+      "mean_cp_loss": 116.825,
+      "legal_rate": 0.975,
+      "fmt_rate": 1.0,
+      "blunder_rate": 0.15,
+      "perfect_rate": 0.15,
+      "n_positions": 40,
+      "spent": 0.22790924999999998
+    },
+    {
+      "name": "v2_seed_pipeline",
+      "mean_cp_loss": 141.5,
+      "legal_rate": 1.0,
+      "fmt_rate": 1.0,
+      "blunder_rate": 0.225,
+      "perfect_rate": 0.1,
+      "n_positions": 40,
+      "spent": 0.6397080000000003
+    },
+    {
+      "name": "v2_optimized_pipeline",
+      "mean_cp_loss": 49.95,
+      "legal_rate": 1.0,
+      "fmt_rate": 0.975,
+      "blunder_rate": 0.025,
+      "perfect_rate": 0.25,
+      "n_positions": 40,
+      "spent": 0.7254157499999992
+    }
+  ],
+  "total_spent": 1.5930329999999995
+}

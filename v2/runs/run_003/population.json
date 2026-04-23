@@ -5,5 +5,19 @@
     "fmt_rate": 1.0,
     "propose_len": 3687,
     "select_len": 2261
+  },
+  "f19777f0e7a5": {
+    "mean_cp_loss": 53.275,
+    "legal_rate": 1.0,
+    "fmt_rate": 1.0,
+    "propose_len": 3687,
+    "select_len": 3602
+  },
+  "272cde779ec5": {
+    "mean_cp_loss": 52.3,
+    "legal_rate": 1.0,
+    "fmt_rate": 1.0,
+    "propose_len": 4956,
+    "select_len": 3602
   }
 }
