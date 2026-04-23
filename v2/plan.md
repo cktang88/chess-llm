@@ -55,14 +55,22 @@ GEPA-family algorithm and grading every move with Stockfish.
 - [x] `v2/src/evaluator.py` — parallel grading (8 workers, 8 Stockfish procs)
 - [x] `v2/program.md` — seed doc (autoresearch-style)
 
-### Phase 4 — Run (BLOCKED on user: provide OPENAI_API_KEY + go-ahead)
-- [ ] `OPENAI_API_KEY=… uv run python -m v2.src.optimizer --budget 9.00 --out v2/runs/run_001`
+### Phase 3.5 — Multi-module refactor (DONE, per user ask for A+B+lite-C)
+- [x] `v2/src/llm.py` — OpenRouter wrapper, uses OpenRouter-reported cost
+- [x] `v2/src/pipeline.py` — 2-module: PROPOSE×N=3 (parallel, temp=1) → SELECT
+      Unanimous candidates skip SELECT (save a call)
+- [x] `v2/src/seed_prompts.py` — PROPOSE_SEED + SELECT_SEED defaults
+- [x] `v2/src/optimizer.py` rewritten — multi-prompt, reflector picks module
+      ("propose" or "select") to edit (Maestro-lite edit-priority)
+- [x] `v2/src/evaluate.py` — 3-way comparison (v1 baseline / v2 seed / v2 opt)
+- [x] Smoke test: 2 iters dropped cp_loss 131→107→51 on 6 positions
+
+### Phase 4 — Run (in progress)
+- [x] Kicked off: `uv run python -m v2.src.optimizer --budget 7.50 --T 12 --n-eval 30 --workers 4 --out v2/runs/run_001`
+- [ ] Wait for completion, inspect `v2/runs/run_001/`
 
 ### Phase 5 — Eval (BLOCKED on Phase 4)
-- [x] `v2/src/evaluate.py` — held-out comparison (different RNG seed),
-      reports cp_loss / legal / fmt / blunder_rate / perfect_rate, baseline
-      vs optimized
-- [ ] Run: `uv run python -m v2.src.evaluate --best-prompt v2/runs/run_001/best_prompt.txt --out v2/runs/run_001/holdout.json`
+- [ ] Run: `uv run python -m v2.src.evaluate --optimized-dir v2/runs/run_001 --budget 1.50`
 - [ ] (Stretch, deferred) Short games vs Stockfish skill_level=3
 
 ## Open decisions (resolve after Phase 1)
