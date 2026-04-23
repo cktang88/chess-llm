@@ -32,14 +32,23 @@ def chat(
     model: str = DEFAULT_MODEL,
     reasoning_effort: str | None = DEFAULT_REASONING_EFFORT,
     temperature: float | None = None,
+    max_tokens: int | None = None,
 ) -> tuple[str, dict]:
-    """Returns (content_text, meta). Charges budget with OpenRouter-reported cost."""
+    """Returns (content_text, meta). Charges budget with OpenRouter-reported cost.
+
+    Note on max_tokens: OpenRouter reserves credits up-front based on the
+    call's max_output_tokens (model default ≈ 65536 for gpt-5.4). Passing a
+    tighter max_tokens (e.g. 8000 for reflect) avoids 402 "insufficient
+    credits" errors when the actual output is far smaller than the default.
+    """
     client = client or make_client()
     kwargs: dict = dict(model=model, messages=messages)
     if reasoning_effort:
         kwargs["reasoning_effort"] = reasoning_effort
     if temperature is not None:
         kwargs["temperature"] = temperature
+    if max_tokens is not None:
+        kwargs["max_completion_tokens"] = max_tokens
     resp = client.chat.completions.create(**kwargs)
     content = resp.choices[0].message.content or ""
     usage = resp.usage

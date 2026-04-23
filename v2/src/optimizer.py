@@ -165,6 +165,7 @@ def reflect(parent: PromptSet, worst_scores: list, budget: Budget,
         budget=budget, tag="reflect",
         reasoning_effort="low",
         temperature=temperature,
+        max_tokens=8000,   # caps OpenRouter credit reserve; actual output is ~5k
     )
     if model:
         chat_kwargs["model"] = model
