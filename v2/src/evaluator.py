@@ -93,12 +93,15 @@ def _evaluate_one(pipeline: Pipeline, grader: Grader, pos: dict) -> PositionScor
 
 def evaluate(prompts: PromptSet, positions: list[dict], budget: Budget,
              *, n_workers_positions: int = 4, n_propose: int = 3,
-             tag: str = "eval") -> EvalReport:
+             tag: str = "eval", model: str | None = None) -> EvalReport:
     """Grade `prompts` on `positions`.
 
     We run `n_workers_positions` positions in parallel; each runs n_propose
     parallel proposer calls + (maybe) one select call. Effective concurrency
     is therefore up to n_workers_positions * (n_propose+1) LLM calls in flight.
+
+    `model` optionally overrides the player model (e.g. "openai/gpt-5.4"
+    to test whether the GEPA-optimized prompts transfer to a stronger model).
     """
     # One Stockfish process per position-worker (engine is single-threaded).
     graders = [Grader() for _ in range(n_workers_positions)]
@@ -106,7 +109,10 @@ def evaluate(prompts: PromptSet, positions: list[dict], budget: Budget,
         g._engine_or_open()
 
     # One Pipeline per position-worker so each uses its own Grader.
-    pipelines = [Pipeline(prompts, budget, n_propose=n_propose, tag=tag)
+    pipe_kwargs = dict(n_propose=n_propose, tag=tag)
+    if model:
+        pipe_kwargs["model"] = model
+    pipelines = [Pipeline(prompts, budget, **pipe_kwargs)
                  for _ in range(n_workers_positions)]
 
     scores: list[PositionScore | None] = [None] * len(positions)

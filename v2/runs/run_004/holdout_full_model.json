@@ -1,0 +1,975 @@
+{
+  "player_model": "openai/gpt-5.4",
+  "optimized_dir": "v2/runs/run_004",
+  "n_positions": 40,
+  "rng_seed": 999,
+  "mean_cp_loss": 39.475,
+  "stderr_cp_loss": 10.318516310310986,
+  "legal_rate": 1.0,
+  "fmt_rate": 0.975,
+  "blunder_rate_gt200": 0.05,
+  "perfect_rate_eq0": 0.225,
+  "total_spent": 2.2392214999999998,
+  "scores": [
+    {
+      "fen": "rnbq1rk1/ppp1bppp/5n2/1N2N3/8/1P6/P1PP1PPP/R1BK1B1R w - - 3 11",
+      "tag": "g3_p20",
+      "phase": "selfplay",
+      "move_uci": "f1c4",
+      "legal": true,
+      "cp_loss": 62,
+      "best_uci": "c1b2",
+      "best_eval_cp": -661,
+      "played_eval_cp": -723,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "f1c4",
+        "f1c4",
+        "c1a3"
+      ],
+      "candidate_reasonings": [
+        "This develops the bishop to an active square, increases pressure on f7 and the dark squares around Black\u2019s king, and improves White\u2019s coordination without committing to a dubious tactical leap.",
+        "This develops the bishop with tempo on f7, increases pressure around the black king, and supports tactical ideas based on the active knights on b5 and e5.",
+        "This quietly develops White\u2019s worst-placed piece, hits the bishop on e7, and improves coordination before committing the king or the knight tactics."
+      ],
+      "error": null
+    },
+    {
+      "fen": "rnbqkb1r/ppp2ppp/4pn2/3p2B1/2PP4/2N5/PP2PPPP/R2QKBNR b KQkq - 3 4",
+      "tag": "open_5",
+      "phase": "opening",
+      "move_uci": "f8e7",
+      "legal": true,
+      "cp_loss": 3,
+      "best_uci": "c7c5",
+      "best_eval_cp": -29,
+      "played_eval_cp": -32,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "f8b4",
+        "f8e7",
+        "f8e7"
+      ],
+      "candidate_reasonings": [
+        "This develops with tempo by pinning the c3-knight, increases pressure on d4, and keeps flexible options for castling or ...dxc4 next.",
+        "Developing with f8e7 cleanly breaks the pin on f6, prepares castling, and keeps Black\u2019s position solid without conceding anything concrete.",
+        "This calmly unpins the f6-knight, develops the worst-placed bishop, and prepares safe castling without creating weaknesses."
+      ],
+      "error": null
+    },
+    {
+      "fen": "rn2k1nr/pp1b1ppp/8/q1bQP3/6P1/5N2/PP3P1P/RNB1KB1R w KQkq - 1 10",
+      "tag": "g1_p18",
+      "phase": "selfplay",
+      "move_uci": "c1d2",
+      "legal": true,
+      "cp_loss": 336,
+      "best_uci": "b1c3",
+      "best_eval_cp": -30,
+      "played_eval_cp": -366,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "c1d2",
+        "b2b4",
+        "c1d2"
+      ],
+      "candidate_reasonings": [
+        "This cleanly blocks the check, develops the bishop, and immediately hits the black queen on a5, gaining a useful tempo.",
+        "This blocks the a5-e1 check and at the same time hits both Black\u2019s queen on a5 and bishop on c5, gaining a strong tactical tempo.",
+        "This blocks the check while developing the worst-placed piece, and the bishop on d2 immediately hits the black queen on a5, gaining a useful tempo."
+      ],
+      "error": null
+    },
+    {
+      "fen": "rnb1k1nr/ppp1bppp/8/2q1p3/8/2N2N2/PPPPQPPP/R1B1KB1R w KQkq - 4 6",
+      "tag": "g3_p10",
+      "phase": "selfplay",
+      "move_uci": "d2d3",
+      "legal": true,
+      "cp_loss": 211,
+      "best_uci": "e2e5",
+      "best_eval_cp": 160,
+      "played_eval_cp": -51,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "d2d4",
+        "e2e5",
+        "d2d3"
+      ],
+      "candidate_reasonings": [
+        "This central break hits the black queen with tempo, opens the c1-bishop, and even makes ...c5d4 tactically risky because the queen on d4 would be loose to a knight capture.",
+        "Qxe5 cleanly wins Black\u2019s advanced e-pawn, and if Black trades queens with Qxe5 then Nxe5 leaves White a pawn up with a well-placed knight.",
+        "d2d3 calmly shuts down the c5-f2 diagonal, opens the c1-bishop, and improves White\u2019s worst-placed piece without creating tactical looseness."
+      ],
+      "error": null
+    },
+    {
+      "fen": "rnbq1rk1/1p2bppp/p2p1n2/2p1p3/2B1P3/2NP3P/PPP1NPP1/R1BQ1RK1 w - - 0 8",
+      "tag": "g0_p14",
+      "phase": "selfplay",
+      "move_uci": "c1g5",
+      "legal": true,
+      "cp_loss": 68,
+      "best_uci": "a2a4",
+      "best_eval_cp": 87,
+      "played_eval_cp": 19,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "c1g5",
+        "a2a4",
+        "c1g5"
+      ],
+      "candidate_reasonings": [
+        "This develops the last minor piece with tempo by pinning the f6-knight, increases pressure on e5, and improves White\u2019s coordination without loosening the position.",
+        "This useful prophylactic move restrains Black\u2019s natural ...b5 expansion, secures the bishop on c4, and gains queenside space without compromising White\u2019s development.",
+        "This develops White\u2019s worst-placed piece with tempo by pinning the f6-knight, increases pressure on e5, and improves coordination without creating weaknesses."
+      ],
+      "error": null
+    },
+    {
+      "fen": "8/5pk1/6p1/8/8/6PK/5P2/8 b - - 0 1",
+      "tag": "cur_19",
+      "phase": "curated",
+      "move_uci": "g7f6",
+      "legal": true,
+      "cp_loss": 3,
+      "best_uci": "g6g5",
+      "best_eval_cp": 2,
+      "played_eval_cp": -1,
+      "fmt_ok": true,
+      "selector_used": false,
+      "candidate_moves": [
+        "g7f6",
+        "g7f6",
+        "g7f6"
+      ],
+      "candidate_reasonings": [
+        "Centralizing the king is the clearest improvement in this pawn ending, bringing it toward e5/f5 to support ...f5 and challenge White\u2019s kingside pawns.",
+        "Centralizing the king is the clearest winning plan here, taking key approach squares from the white king while supporting the connected pawns\u2019 advance.",
+        "Centralizing the king is the clearest improvement here, bringing Black toward the pawns and key entry squares while keeping the structure flexible."
+      ],
+      "error": null
+    },
+    {
+      "fen": "r1bqk2r/pp1nbppp/4pn2/3pN3/3P4/2N1P3/PP3PPP/R1BQKB1R b KQkq - 0 7",
+      "tag": "cur_18",
+      "phase": "curated",
+      "move_uci": "e8g8",
+      "legal": true,
+      "cp_loss": 18,
+      "best_uci": "d7e5",
+      "best_eval_cp": 52,
+      "played_eval_cp": 34,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "e8g8",
+        "d7e5",
+        "e8g8"
+      ],
+      "candidate_reasonings": [
+        "Castling secures the king and connects Black\u2019s rooks while keeping the flexible option of meeting White\u2019s centralized knight later under better circumstances.",
+        "This immediately removes White\u2019s advanced e5-knight and, after d4xe5, Black gets a comfortable game with the center clarified and White\u2019s space advantage reduced.",
+        "Castling is the cleanest improvement here, securing the king and connecting the rooks before deciding whether to challenge White\u2019s advanced e5-knight."
+      ],
+      "error": null
+    },
+    {
+      "fen": "rnb1kbnr/ppp1pppp/8/q7/8/2N5/PPPP1PPP/R1BQKBNR w KQkq - 2 4",
+      "tag": "open_8",
+      "phase": "opening",
+      "move_uci": "g1f3",
+      "legal": true,
+      "cp_loss": 0,
+      "best_uci": "d2d4",
+      "best_eval_cp": 75,
+      "played_eval_cp": 75,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "b2b4",
+        "b2b4",
+        "g1f3"
+      ],
+      "candidate_reasonings": [
+        "b2b4 gains a clear tempo on the black queen and seizes queenside space, fitting the position where White should exploit Black\u2019s early queen sortie.",
+        "b4 gains a tempo on Black\u2019s overextended queen on a5, seizes queenside space, and makes the early queen sortie easier to exploit.",
+        "This calmly develops a kingside piece, improves coordination and king safety, and prepares to challenge Black\u2019s center without creating new weaknesses."
+      ],
+      "error": null
+    },
+    {
+      "fen": "8/1P5k/8/8/8/2K5/r7/4R3 w - - 0 1",
+      "tag": "cur_8",
+      "phase": "curated",
+      "move_uci": "b7b8q",
+      "legal": true,
+      "cp_loss": 0,
+      "best_uci": "b7b8q",
+      "best_eval_cp": 885,
+      "played_eval_cp": 885,
+      "fmt_ok": true,
+      "selector_used": false,
+      "candidate_moves": [
+        "b7b8q",
+        "b7b8q",
+        "b7b8q"
+      ],
+      "candidate_reasonings": [
+        "Promoting to a queen is the cleanest win, creating a decisive material advantage immediately without allowing any tactical complications.",
+        "Promoting immediately to a queen is the cleanest conversion, creating overwhelming material advantage without allowing any tactical counterplay.",
+        "Promoting immediately creates a decisive material advantage and a new queen that coordinates with the rook to convert without allowing any counterplay."
+      ],
+      "error": null
+    },
+    {
+      "fen": "rnbqk2r/ppp1ppbp/3p1np1/8/2PPP3/2N5/PP3PPP/R1BQKBNR w KQkq - 0 5",
+      "tag": "open_6",
+      "phase": "opening",
+      "move_uci": "g1f3",
+      "legal": true,
+      "cp_loss": 5,
+      "best_uci": "f1e2",
+      "best_eval_cp": 64,
+      "played_eval_cp": 59,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "g1f3",
+        "c1h6",
+        "g1f3"
+      ],
+      "candidate_reasonings": [
+        "This develops a key piece, reinforces the e5 advance, and prepares quick kingside castling without creating weaknesses.",
+        "This immediately challenges Black\u2019s key g7-bishop, making castling less comfortable and giving White a clear positional edge by exchanging the strongest defender of the dark squares.",
+        "This calmly develops White\u2019s worst-placed piece, reinforces the central pawns, and prepares quick kingside castling without creating any weaknesses."
+      ],
+      "error": null
+    },
+    {
+      "fen": "r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R w KQkq - 0 5",
+      "tag": "cur_0",
+      "phase": "curated",
+      "move_uci": "e1g1",
+      "legal": true,
+      "cp_loss": 4,
+      "best_uci": "c2c3",
+      "best_eval_cp": 31,
+      "played_eval_cp": 27,
+      "fmt_ok": true,
+      "selector_used": false,
+      "candidate_moves": [
+        "e1g1",
+        "e1g1",
+        "e1g1"
+      ],
+      "candidate_reasonings": [
+        "Castling secures the king, connects the rooks, and keeps White\u2019s healthy lead in development without allowing any tactical counterplay.",
+        "Castling gets the king safe, connects the rook, and keeps all the central options like c2c3 and d3d4 while avoiding speculative tactics like Bxf7+.",
+        "Castling secures the king and connects the rooks while keeping all of White\u2019s central and kingside development options flexible."
+      ],
+      "error": null
+    },
+    {
+      "fen": "rnbqkb1r/pp2pppp/2p2n2/8/2pP4/2N2N2/PP2PPPP/R1BQKB1R w KQkq - 0 5",
+      "tag": "open_9",
+      "phase": "opening",
+      "move_uci": "c1f4",
+      "legal": true,
+      "cp_loss": 81,
+      "best_uci": "a2a4",
+      "best_eval_cp": 31,
+      "played_eval_cp": -50,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "e2e4",
+        "e2e4",
+        "c1f4"
+      ],
+      "candidate_reasonings": [
+        "e2e4 immediately challenges Black\u2019s extra c4-pawn, builds a strong center, and opens lines for the bishop while keeping White\u2019s development harmonious.",
+        "This central break exploits White\u2019s lead in development, challenges Black\u2019s c4-pawn chain immediately, and opens lines for the bishop and queen without compromising king safety.",
+        "Developing the worst-placed piece to an active square before e3 keeps the bishop outside the pawn chain, increases control of e5/c7, and supports a smooth setup against Black\u2019s c4-pawn."
+      ],
+      "error": null
+    },
+    {
+      "fen": "r3k2r/ppp2ppp/2n1bn2/2bqp3/3P4/2N1BN2/PPP1QPPP/R3KB1R w KQkq - 0 9",
+      "tag": "cur_4",
+      "phase": "curated",
+      "move_uci": "c3d5",
+      "legal": true,
+      "cp_loss": 0,
+      "best_uci": "c3d5",
+      "best_eval_cp": 531,
+      "played_eval_cp": 531,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "c3d5",
+        "c3d5",
+        "e1c1"
+      ],
+      "candidate_reasonings": [
+        "This simply wins Black\u2019s queen for a knight, and after any recapture White comes out decisively ahead in material.",
+        "This simply wins Black\u2019s queen on d5 for a knight, since after ...Bxd5 or ...Nxd5 the queen is gone and White comes out far ahead materially.",
+        "Long castling is the clearest improvement here: it gets the king out of the center, activates the a1-rook, and leaves White with harmonious development before starting operations."
+      ],
+      "error": null
+    },
+    {
+      "fen": "8/8/4k3/8/8/4K3/4R3/8 w - - 0 1",
+      "tag": "cur_6",
+      "phase": "curated",
+      "move_uci": "e3f4",
+      "legal": true,
+      "cp_loss": 33,
+      "best_uci": "e3d2",
+      "best_eval_cp": 465,
+      "played_eval_cp": 432,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "e3f4",
+        "e3f4",
+        "e3e4"
+      ],
+      "candidate_reasonings": [
+        "This centralizes the king toward the enemy king while stepping off the rook\u2019s file, improving coordination so the rook can start checking and cutting the black king off.",
+        "Centralizing the king with e3f4 brings it closer to the black king and supports the standard winning plan of driving the king back while coordinating with the rook.",
+        "Centralizing the king is the cleanest winning plan in this rook endgame, bringing it closer to support the rook and box in the black king."
+      ],
+      "error": null
+    },
+    {
+      "fen": "r1bqkb1r/1ppp1ppp/p1n2n2/4p3/B3P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 2 5",
+      "tag": "open_1",
+      "phase": "opening",
+      "move_uci": "e1g1",
+      "legal": true,
+      "cp_loss": 0,
+      "best_uci": "e1g1",
+      "best_eval_cp": 44,
+      "played_eval_cp": 44,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "e1g1",
+        "f3e5",
+        "e1g1"
+      ],
+      "candidate_reasonings": [
+        "Castling secures the king, brings the rook toward the center, and keeps White\u2019s flexible Ruy Lopez setup intact before choosing between c3, d3, or d4.",
+        "This exploits the pin on c6, grabs the e5-pawn, and asks Black to justify the loss of the center before White even needs to castle.",
+        "Castling is the cleanest improvement here, securing the king, connecting the rook toward the e-file, and keeping all the main central options for later."
+      ],
+      "error": null
+    },
+    {
+      "fen": "8/4kp2/4p3/8/4P3/4KP2/8/8 w - - 0 1",
+      "tag": "cur_10",
+      "phase": "curated",
+      "move_uci": "e3d4",
+      "legal": true,
+      "cp_loss": 0,
+      "best_uci": "e3d3",
+      "best_eval_cp": 0,
+      "played_eval_cp": 0,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "e4e5",
+        "e4e5",
+        "e3d4"
+      ],
+      "candidate_reasonings": [
+        "Advancing the e-pawn gains space, fixes Black\u2019s structure, and gives White\u2019s king clearer routes to invade while keeping the pawns connected.",
+        "Pushing the e-pawn gains space, restrains the black king by controlling d6 and f6, and prepares to advance the white king into a more favorable pawn ending.",
+        "Centralizing the king is the cleanest improvement here: from d4 White penetrates toward c5/e5, supports the pawns, and makes it hard for Black\u2019s king to hold both the center and f7."
+      ],
+      "error": null
+    },
+    {
+      "fen": "r1bqr1k1/pp3ppp/2n2n2/3p4/3P4/2N1PN2/PP3PPP/R1BQR1K1 w - - 0 11",
+      "tag": "cur_12",
+      "phase": "curated",
+      "move_uci": "c1d2",
+      "legal": true,
+      "cp_loss": 41,
+      "best_uci": "h2h3",
+      "best_eval_cp": 77,
+      "played_eval_cp": 36,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "e3e4",
+        "c1d2",
+        "c1d2"
+      ],
+      "candidate_reasonings": [
+        "This central break uses the rook on e1, challenges Black\u2019s isolated d5-pawn setup, and after any exchange leaves White with more active pieces and better space.",
+        "This calmly develops the last minor piece, connects the rooks, and improves White\u2019s coordination while keeping the extra pawn and central control.",
+        "This calmly develops White\u2019s worst-placed piece, improves coordination between the rooks and queen, and prepares future central or queenside play without creating weaknesses."
+      ],
+      "error": null
+    },
+    {
+      "fen": "rnbq1rk1/1p2bppp/p2p1n2/4p3/4P3/2NQBN2/PPP2PPP/2KR1B1R w - - 4 10",
+      "tag": "g2_p18",
+      "phase": "selfplay",
+      "move_uci": "f1e2",
+      "legal": true,
+      "cp_loss": 62,
+      "best_uci": "h2h3",
+      "best_eval_cp": 51,
+      "played_eval_cp": -11,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "e3h6",
+        "f3e5",
+        "f1e2"
+      ],
+      "candidate_reasonings": [
+        "This reroutes the bishop to h6 to pressure g7 and intensify White\u2019s kingside attack against the castled black king in the opposite-sides-castling setup.",
+        "Nxe5 exploits the overloaded d6/e5 center: if ...dxe5, then Qxd8 followed by Rxd8 leaves White having traded a knight for a bishop while also winning the e5-pawn.",
+        "This calmly develops White\u2019s worst-placed piece, improves coordination for the rooks and queen, and consolidates the queenside-castled king without creating tactical risk."
+      ],
+      "error": null
+    },
+    {
+      "fen": "rnbq1rk1/pp2bppp/3p1n2/2p1p3/2B1P3/2NP3P/PPP1NPP1/R1BQ1RK1 b - - 4 7",
+      "tag": "g0_p13",
+      "phase": "selfplay",
+      "move_uci": "b8c6",
+      "legal": true,
+      "cp_loss": 4,
+      "best_uci": "c8e6",
+      "best_eval_cp": -72,
+      "played_eval_cp": -76,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "c8e6",
+        "f6e4",
+        "b8c6"
+      ],
+      "candidate_reasonings": [
+        "Develops the bishop with tempo against the active c4-bishop, improving coordination and preparing ...Nc6 or ...d5 under better circumstances.",
+        "The tactical shot ...Nxe4 exploits the central tension, and after 8.Nxe4 d5 Black regains the piece with strong activity and easy equality.",
+        "This quietly develops Black\u2019s worst-placed piece, increases control of d4 and b4, and prepares ...d5 under better circumstances without creating weaknesses."
+      ],
+      "error": null
+    },
+    {
+      "fen": "r1bqkb1r/pppp1ppp/2n2n2/4p3/2P5/2N2N2/PP1PPPPP/R1BQKB1R w KQkq - 4 4",
+      "tag": "open_7",
+      "phase": "opening",
+      "move_uci": "g2g3",
+      "legal": true,
+      "cp_loss": 0,
+      "best_uci": "g2g3",
+      "best_eval_cp": 5,
+      "played_eval_cp": 5,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "g2g3",
+        "f3e5",
+        "g2g3"
+      ],
+      "candidate_reasonings": [
+        "This calmly prepares Bg2 and castling, improving king safety and long-term pressure on the center without creating any tactical weaknesses.",
+        "The tactical 4.Nxe5 exploits that after ...Nxe5 White gets a strong d2d4 break hitting the knight and seizing the center, turning Black\u2019s e5-pawn into a target rather than a strength.",
+        "g2g3 is a calm developing move that fianchettos the worst-placed bishop, improves king safety, and keeps White\u2019s flexible English setup intact."
+      ],
+      "error": null
+    },
+    {
+      "fen": "rn1qkbnr/pp1bpppp/2p5/3pP3/2PP2P1/8/PP3P1P/RNBQKBNR b KQkq - 0 5",
+      "tag": "g1_p9",
+      "phase": "selfplay",
+      "move_uci": "h7h5",
+      "legal": true,
+      "cp_loss": 25,
+      "best_uci": "e7e6",
+      "best_eval_cp": -23,
+      "played_eval_cp": -48,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "h7h5",
+        "d7g4",
+        "h7h5"
+      ],
+      "candidate_reasonings": [
+        "This immediately challenges White\u2019s overextended g4-pawn, gains kingside space, and creates a clear plan of undermining White\u2019s advanced pawn chain before continuing development.",
+        "This develops the bishop with tempo by simply winning the loose g4-pawn, reducing White\u2019s kingside space and leaving Black with an easy game.",
+        "This immediately questions White\u2019s overextended g4-pawn, restrains further kingside expansion like g5, and gains useful space without compromising Black\u2019s development plan."
+      ],
+      "error": null
+    },
+    {
+      "fen": "r1bq1rk1/pp2ppbp/2n3p1/3p4/2PNP3/2N1B3/PP2BPPP/R2QK2R w KQ - 0 9",
+      "tag": "cur_13",
+      "phase": "curated",
+      "move_uci": "e1g1",
+      "legal": true,
+      "cp_loss": 90,
+      "best_uci": "c4d5",
+      "best_eval_cp": 530,
+      "played_eval_cp": 440,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "e1g1",
+        "c4c5",
+        "e1g1"
+      ],
+      "candidate_reasonings": [
+        "Castling secures the king, connects the rooks, and leaves White ready to exploit the central space advantage without allowing Black easy counterplay against the uncastled king.",
+        "c4c5 gains space and strongly restrains Black\u2019s queenside counterplay by fixing the d6 square and limiting the c6-knight, a very thematic improvement in this closed structure.",
+        "Castling secures the king and connects the rooks, a clean improvement before committing the center or starting operations on the queenside."
+      ],
+      "error": null
+    },
+    {
+      "fen": "rnbqkb1r/1p2pppp/p2p1n2/8/3NP3/2N5/PPP2PPP/R1BQKB1R w KQkq - 0 6",
+      "tag": "open_2",
+      "phase": "opening",
+      "move_uci": "c1g5",
+      "legal": true,
+      "cp_loss": 14,
+      "best_uci": "c1e3",
+      "best_eval_cp": 42,
+      "played_eval_cp": 28,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "f1c4",
+        "c1g5",
+        "f1d3"
+      ],
+      "candidate_reasonings": [
+        "This develops smoothly, eyes the sensitive f7-square, and prepares quick castling while Black is still behind in development.",
+        "This develops with tempo by pinning the f6-knight to the queen on d8, making it harder for Black to contest the center and increasing pressure on e7 and d6.",
+        "Developing the bishop to a strong central square prepares quick castling, improves king safety, and reinforces White\u2019s active control of e4 and the kingside."
+      ],
+      "error": null
+    },
+    {
+      "fen": "r1bqr1k1/1p3pbp/p1n1pnp1/8/2pP4/2N1PNB1/PP2BPPP/R2QR1K1 w - - 0 11",
+      "tag": "cur_14",
+      "phase": "curated",
+      "move_uci": "e2c4",
+      "legal": true,
+      "cp_loss": 0,
+      "best_uci": "e2c4",
+      "best_eval_cp": 183,
+      "played_eval_cp": 183,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "e2c4",
+        "a1c1",
+        "e2c4"
+      ],
+      "candidate_reasonings": [
+        "This simply recovers the c4-pawn while developing the bishop to an active square, improving White\u2019s coordination without taking any tactical risk.",
+        "This quietly improves the worst-placed rook onto the half-open c-file, directly increasing pressure on c4 and c8 while keeping White\u2019s center flexible for a later d5 or e4 break.",
+        "This simply picks off the loose c4-pawn while developing the bishop to an active diagonal, improving White\u2019s coordination without creating any weakness."
+      ],
+      "error": null
+    },
+    {
+      "fen": "r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/2P2N2/PP1P1PPP/RNBQK2R b KQkq - 0 4",
+      "tag": "open_0",
+      "phase": "opening",
+      "move_uci": "g8f6",
+      "legal": true,
+      "cp_loss": 0,
+      "best_uci": "g8f6",
+      "best_eval_cp": -24,
+      "played_eval_cp": -24,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "g8f6",
+        "d7d5",
+        "g8f6"
+      ],
+      "candidate_reasonings": [
+        "Develops the kingside knight, prepares castling, and immediately increases pressure on e4 so Black meets White\u2019s c3 setup with active piece play.",
+        "This immediate central break challenges White\u2019s bishop and pawn chain before they consolidate with d4, opening lines while White is still uncastled.",
+        "This develops the worst-placed piece, hits e4 immediately, and prepares quick castling while keeping Black\u2019s position flexible and sound."
+      ],
+      "error": null
+    },
+    {
+      "fen": "rnbqk2r/1p2bppp/p2p1n2/4p3/4P3/2NQBN2/PPP2PPP/R3KB1R w KQkq - 2 9",
+      "tag": "g2_p16",
+      "phase": "selfplay",
+      "move_uci": "e1c1",
+      "legal": true,
+      "cp_loss": 25,
+      "best_uci": "h2h3",
+      "best_eval_cp": 39,
+      "played_eval_cp": 14,
+      "fmt_ok": true,
+      "selector_used": false,
+      "candidate_moves": [
+        "e1c1",
+        "e1c1",
+        "e1c1"
+      ],
+      "candidate_reasonings": [
+        "Long castling secures the king, activates the a1-rook on the d-file against Black\u2019s d6-pawn and queen, and fits White\u2019s lead in development.",
+        "Long castling is legal here and is the clearest improvement: it secures the king, activates the a1-rook on the open d-file, and prepares direct pressure against Black's center and kingside.",
+        "Long castling immediately secures the king, connects the rooks, and puts the d-file rook opposite Black\u2019s backward d6-pawn."
+      ],
+      "error": null
+    },
+    {
+      "fen": "rnbqkbnr/1p3ppp/p2pp3/8/4P3/2NQ1N2/PPP2PPP/R1B1KB1R b KQkq - 1 6",
+      "tag": "g2_p11",
+      "phase": "selfplay",
+      "move_uci": "g8f6",
+      "legal": true,
+      "cp_loss": 35,
+      "best_uci": "b7b5",
+      "best_eval_cp": -15,
+      "played_eval_cp": -50,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "g8f6",
+        "d6d5",
+        "b8c6"
+      ],
+      "candidate_reasonings": [
+        "This develops a key piece, pressures e4, and prepares quick kingside castling without creating any structural weakness.",
+        "Opening the center immediately is strongest here: it challenges White\u2019s only central pawn, frees Black\u2019s c8-bishop and queen, and exploits White\u2019s uncastled king and early queen placement.",
+        "This quietly develops the worst-placed piece, increases central control over d4 and e5, and prepares harmonious development without creating weaknesses."
+      ],
+      "error": null
+    },
+    {
+      "fen": "r3k1nr/pp1b1ppp/2n5/q1bQP3/6P1/2N2N2/PP3P1P/R1B1KB1R w KQkq - 3 11",
+      "tag": "g1_p20",
+      "phase": "selfplay",
+      "move_uci": "f1g2",
+      "legal": true,
+      "cp_loss": 78,
+      "best_uci": "f3g5",
+      "best_eval_cp": 64,
+      "played_eval_cp": -14,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "f1g2",
+        "b2b4",
+        "f1c4"
+      ],
+      "candidate_reasonings": [
+        "Develops the bishop to an active long diagonal and, crucially, clears f1 so White can castle next move and consolidate the extra pawn.",
+        "This pawn fork hits both Black\u2019s queen on a5 and bishop on c5 at once, gaining time and posing a concrete tactical problem to two active pieces.",
+        "This develops a dormant bishop to an active square, increases pressure on f7 and the black king, and prepares quick castling without taking tactical risk."
+      ],
+      "error": null
+    },
+    {
+      "fen": "rnbqk1nr/ppp1bppp/8/1N6/8/5N2/PPPP1PPP/R1BK1B1R w kq - 4 9",
+      "tag": "g3_p16",
+      "phase": "selfplay",
+      "move_uci": "f1c4",
+      "legal": true,
+      "cp_loss": 4,
+      "best_uci": "d2d4",
+      "best_eval_cp": -676,
+      "played_eval_cp": -680,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "f1c4",
+        "b5c7",
+        "d2d3"
+      ],
+      "candidate_reasonings": [
+        "This develops the bishop to an active square, increases pressure on f7 and the dark squares around Black\u2019s king, and improves White\u2019s coordination without loosening the centralized king.",
+        "Nxc7+ is the clearest tactical shot, checking the king and forking key queenside material so Black is forced into an awkward defensive response.",
+        "This quietly improves White\u2019s worst-placed piece by freeing the c1-bishop, supports the center, and keeps the position solid with the king still needing care."
+      ],
+      "error": null
+    },
+    {
+      "fen": "r2qkbnr/ppp2ppp/2np4/4p3/2B1P1b1/2NP1N2/PPP2PPP/R1BQK2R w KQkq - 0 5",
+      "tag": "cur_1",
+      "phase": "curated",
+      "move_uci": "e1g1",
+      "legal": true,
+      "cp_loss": 12,
+      "best_uci": "c1e3",
+      "best_eval_cp": 87,
+      "played_eval_cp": 75,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "e1g1",
+        "f3e5",
+        "e1g1"
+      ],
+      "candidate_reasonings": [
+        "Castling improves king safety immediately, connects the rooks, and leaves White with a solid, well-developed position before starting any tactics on the kingside or center.",
+        "This is the classic Legal\u2019s Trap: if Black greedily takes the queen with g4d1, then c4f7+ followed by c3d5 is mate, while the move also strikes the center immediately.",
+        "Castling gets White\u2019s king safe immediately, connects the rooks, and keeps flexible pressure with the c4-bishop and central control without committing to premature tactics."
+      ],
+      "error": null
+    },
+    {
+      "fen": "rnbqkb1r/pp2pppp/5n2/2pp4/3P1B2/2P1P3/PP3PPP/RN1QKBNR b KQkq - 0 4",
+      "tag": "open_10",
+      "phase": "opening",
+      "move_uci": "b8c6",
+      "legal": true,
+      "cp_loss": 0,
+      "best_uci": "b8c6",
+      "best_eval_cp": -12,
+      "played_eval_cp": -12,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "b8c6",
+        "d8b6",
+        "b8c6"
+      ],
+      "candidate_reasonings": [
+        "Developing the queenside knight increases pressure on d4, supports ...cxd4 or ...e5 ideas, and improves Black\u2019s coordination without creating weaknesses.",
+        "This thematic queen sortie immediately pressures b2 and d4, creating a concrete tactical nuisance while forcing White to spend time defending instead of developing freely.",
+        "Develops the queenside knight to its best square, increases pressure on d4, and prepares natural follow-ups like e7-e6 without creating early queen exposure."
+      ],
+      "error": null
+    },
+    {
+      "fen": "r1bqk2r/pppp1ppp/2n2n2/4p3/1bB1P3/2N2N2/PPPP1PPP/R1BQK2R w KQkq - 4 5",
+      "tag": "cur_3",
+      "phase": "curated",
+      "move_uci": "e1g1",
+      "legal": true,
+      "cp_loss": 15,
+      "best_uci": "c3d5",
+      "best_eval_cp": 36,
+      "played_eval_cp": 21,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "e1g1",
+        "c4f7",
+        "e1g1"
+      ],
+      "candidate_reasonings": [
+        "Castling is the cleanest improvement here: it secures the king, connects the rook, and keeps White\u2019s flexible central and tactical options like d2d4 or c3d5.",
+        "This Greek-gift style check drags the black king to f7 and sets up concrete follow-ups like f3e5+ to exploit the exposed king and Black\u2019s loose coordination.",
+        "Castling short is the cleanest improvement here, securing the king and bringing the h1-rook into play before starting any central or tactical action."
+      ],
+      "error": null
+    },
+    {
+      "fen": "8/8/4k3/8/8/4K3/4P3/4r3 w - - 0 1",
+      "tag": "cur_9",
+      "phase": "curated",
+      "move_uci": "e3f2",
+      "legal": true,
+      "cp_loss": 10,
+      "best_uci": "e3d3",
+      "best_eval_cp": -460,
+      "played_eval_cp": -470,
+      "fmt_ok": false,
+      "selector_used": false,
+      "candidate_moves": [
+        null,
+        "e3f2",
+        "e3f2"
+      ],
+      "candidate_reasonings": [
+        "",
+        "This attacks the rook on e1 immediately while improving king activity, forcing Black to spend a move on the rook instead of coordinating with the king.",
+        "e3f2 activates the king and immediately attacks the rook on e1, forcing Black to spend a move on defense rather than improving the rook's dominance."
+      ],
+      "error": null
+    },
+    {
+      "fen": "r1bq1rk1/pp1nppbp/3p1np1/2pP4/2P1P3/2N2N2/PP2BPPP/R1BQ1RK1 b - - 0 8",
+      "tag": "cur_17",
+      "phase": "curated",
+      "move_uci": "e7e6",
+      "legal": true,
+      "cp_loss": 148,
+      "best_uci": "h7h6",
+      "best_eval_cp": -104,
+      "played_eval_cp": -252,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "e7e6",
+        "b7b5",
+        "e7e6"
+      ],
+      "candidate_reasonings": [
+        "This directly undermines White\u2019s d5-e4 center while opening the c8-bishop, giving Black a clean and flexible improvement in development and central counterplay.",
+        "b7b5 is the thematic Benoni queenside break, immediately challenging White\u2019s c4\u2013d5 chain and trying to open lines for Black\u2019s bishops and rook activity before White consolidates.",
+        "This calmly challenges White\u2019s advanced d5-pawn while opening the c8-bishop, improving Black\u2019s worst-placed piece and consolidating the position."
+      ],
+      "error": null
+    },
+    {
+      "fen": "8/8/3k4/8/3P4/3K4/8/3N4 w - - 0 1",
+      "tag": "cur_11",
+      "phase": "curated",
+      "move_uci": "d1c3",
+      "legal": true,
+      "cp_loss": 35,
+      "best_uci": "d3c4",
+      "best_eval_cp": 545,
+      "played_eval_cp": 510,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "d3c4",
+        "d3e4",
+        "d1c3"
+      ],
+      "candidate_reasonings": [
+        "This central king move takes the opposition, supports a future d4-d5 advance, and boxes the black king away from the pawn.",
+        "This centralizes the king to support d5, takes key squares from the black king, and avoids pushing the pawn before it is defended.",
+        "This quietly improves White\u2019s worst-placed piece, centralizes the knight, and increases support for the important d5 and e4 squares without loosening the pawn structure."
+      ],
+      "error": null
+    },
+    {
+      "fen": "r1bq1rk1/pp1n1pbp/2p2np1/3p4/3P1B2/2NQPN2/PP3PPP/2KR3R w - - 0 11",
+      "tag": "cur_15",
+      "phase": "curated",
+      "move_uci": "h1e1",
+      "legal": true,
+      "cp_loss": 72,
+      "best_uci": "h2h4",
+      "best_eval_cp": -443,
+      "played_eval_cp": -515,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "e3e4",
+        "e3e4",
+        "h1e1"
+      ],
+      "candidate_reasonings": [
+        "This central break exploits White\u2019s lead in activity, challenges Black\u2019s d5-pawn immediately, and opens lines for the queen, bishops, and rooks before Black finishes coordination.",
+        "This central break challenges d5 immediately, opens lines for White\u2019s pieces, and exploits the fact that White is better coordinated while Black\u2019s queenside remains slightly awkward.",
+        "This calmly improves the worst-placed piece, centralizes the rook behind the e-pawn, and prepares e3e4 or Ne5 with better coordination while keeping White's kingside attacking chances."
+      ],
+      "error": null
+    },
+    {
+      "fen": "r1bq1rk1/pp2ppbp/2np1np1/8/3NP3/2N1B3/PPP2PPP/R2QKB1R b KQ - 0 7",
+      "tag": "cur_16",
+      "phase": "curated",
+      "move_uci": "d6d5",
+      "legal": true,
+      "cp_loss": 53,
+      "best_uci": "f6g4",
+      "best_eval_cp": 197,
+      "played_eval_cp": 144,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "d6d5",
+        "f6g4",
+        "c8g4"
+      ],
+      "candidate_reasonings": [
+        "This thematic central break immediately challenges White\u2019s strong e4\u2013d4 setup and aims to open lines while the white king is still stuck in the center.",
+        "This jump immediately hits the loose bishop on e3 and creates the concrete threat of ...Nxe3, gaining time and unsettling White\u2019s uncastled position.",
+        "This develops Black\u2019s worst-placed piece to an active square, pressures d1 along the diagonal, and increases control over e2/f3 while White\u2019s king is still uncastled."
+      ],
+      "error": null
+    },
+    {
+      "fen": "r1bqkb1r/pp2pppp/2np1n2/8/3NP3/2N5/PPP2PPP/R1BQKB1R w KQkq - 2 6",
+      "tag": "cur_2",
+      "phase": "curated",
+      "move_uci": "c1g5",
+      "legal": true,
+      "cp_loss": 1,
+      "best_uci": "f2f3",
+      "best_eval_cp": 44,
+      "played_eval_cp": 43,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "f1b5",
+        "c1g5",
+        "f1e2"
+      ],
+      "candidate_reasonings": [
+        "This develops with tempo by pinning the c6-knight to the king, increasing pressure on Black\u2019s center and making ...e5 or ...Bd7 less convenient.",
+        "This develops with tempo by pinning the f6-knight to the king, making it harder for Black to challenge the center and increasing pressure on d6/e7.",
+        "Developing the worst-placed piece with f1e2 prepares quick castling and improves White\u2019s coordination without creating targets."
+      ],
+      "error": null
+    },
+    {
+      "fen": "rnbqkb1r/pp3ppp/3p1n2/2p1p3/2B1P3/2NP3P/PPP2PP1/R1BQK1NR b KQkq - 0 5",
+      "tag": "g0_p9",
+      "phase": "selfplay",
+      "move_uci": "b8c6",
+      "legal": true,
+      "cp_loss": 19,
+      "best_uci": "c8e6",
+      "best_eval_cp": -44,
+      "played_eval_cp": -63,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "b8c6",
+        "f6e4",
+        "b8c6"
+      ],
+      "candidate_reasonings": [
+        "This develops a queenside piece to its best square, increases central control over d4/e5, and prepares ...Be7 and ...O-O without creating weaknesses.",
+        "The thematic pawn grab f6e4 challenges White\u2019s center immediately and can exploit the uncastled king with ideas like ...d5 or ...Qh4 if White responds inaccurately.",
+        "This develops Black\u2019s worst-placed piece, increases control of d4 and e5, and supports smooth kingside development without creating weaknesses."
+      ],
+      "error": null
+    },
+    {
+      "fen": "rnbqkb1r/ppp2ppp/4pn2/3p2B1/3PP3/2N5/PPP2PPP/R2QKBNR b KQkq - 3 4",
+      "tag": "open_3",
+      "phase": "opening",
+      "move_uci": "f8e7",
+      "legal": true,
+      "cp_loss": 12,
+      "best_uci": "h7h6",
+      "best_eval_cp": -39,
+      "played_eval_cp": -51,
+      "fmt_ok": true,
+      "selector_used": true,
+      "candidate_moves": [
+        "f8e7",
+        "f8b4",
+        "f8e7"
+      ],
+      "candidate_reasonings": [
+        "Developing with Be7 breaks the Bg5 pin, prepares castling, and keeps Black\u2019s structure flexible without creating weaknesses.",
+        "This thematic counterpin immediately challenges White\u2019s setup by pinning the c3-knight, increasing pressure on e4, and fighting for the initiative rather than passively unpinning.",
+        "Developing the kingside bishop to e7 breaks the pin on f6, prepares castling, and improves Black\u2019s coordination without creating weaknesses."
+      ],
+      "error": null
+    }
+  ]
+}

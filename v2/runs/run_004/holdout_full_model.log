@@ -1,0 +1,11 @@
+[eval-xfer] N=40 seed=999 player_model=openai/gpt-5.4
+
+=== TRANSFER EVAL (openai/gpt-5.4, n=40, seed=999) ===
+  mean cp_loss:  39.5 ± 10.3
+  legal_rate:    1.00
+  fmt_rate:      0.97
+  blunder >200:  0.05
+  perfect =0:    0.23
+  spent:         $2.2392
+
+[eval-xfer] saved -> v2/runs/run_004/holdout_full_model.json

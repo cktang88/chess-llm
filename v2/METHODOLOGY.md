@@ -412,6 +412,30 @@ The "v2 optimized" PromptSet is the `run_004/best_{propose,select}.txt`
 snapshot, which inherits accumulated edits from all four runs (each run
 warm-started from the previous one's best).
 
+### Transfer test: do the mini-tuned prompts help a stronger model?
+
+Same optimized PromptSet, same 40 held-out positions (seed=999). Only
+change: player model swapped from `gpt-5.4-mini` (low reasoning) to
+`gpt-5.4` (full, low reasoning). Tool: `v2/src/eval_transfer.py`.
+
+| Player model | mean cp_loss | blunder >200 | perfect =0 | spent |
+|---|---|---|---|---|
+| gpt-5.4-mini + optimized | 50.0 | **3%** | **25%** | $0.73 |
+| **gpt-5.4 (full) + optimized** | **39.5 ± 10.3** | 5% | 23% | $2.24 |
+
+Transfer is **marginally positive**: mean cp_loss drops by 10.5, but
+the stderr on 40 positions is 10.3, so this is ~1σ — barely out of the
+noise band. Tail metrics go slightly the wrong way: blunder rate up 3%
+→ 5%, perfect rate down 25% → 23%.
+
+Interpretation: the prompts' anti-tactical biases ("don't automatically
+play central breaks", "consider quiet moves first") were tuned against
+mini's specific failure modes. On a stronger model those corrections
+occasionally over-suppress tactics it would otherwise find on its own.
+The likely better path is to re-run GEPA with the full model as the
+*player* so prompts tune to its actual failure modes — we didn't do this
+on budget grounds (3× cost per optimization call).
+
 ### Lessons
 
 - **Per-position grading is the right primitive.** Games are too noisy at
