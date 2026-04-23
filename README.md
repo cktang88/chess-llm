@@ -116,6 +116,17 @@ uv run python -m v2.src.optimizer \
   --force-module-rotation alt-select-first \
   --reflect-temperature 1.0 --seed 1 \
   --out v2/runs/run_002
+
+# Run_003: noise-aware + stronger reflector + reflector memory
+# (addresses the three plateau hypotheses — see v2/METHODOLOGY.md §8)
+uv run python -m v2.src.optimizer \
+  --budget 5.00 --T 12 --n-eval 40 --workers 4 --n-propose 3 \
+  --warm-start-from v2/runs/run_002 \
+  --force-module-rotation alt-select-first \
+  --reflect-temperature 1.0 \
+  --reflect-model openai/gpt-5.4 \
+  --history-n 5 --accept-sigma 1.5 --seed 2 \
+  --out v2/runs/run_003
 ```
 
 ### v2 file layout

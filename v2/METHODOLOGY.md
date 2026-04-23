@@ -200,8 +200,11 @@ PROPOSE; illegal/malformed → PROPOSE's output section).
 | Minibatch `m` | 8 | Enough to show >1 failure mode to the reflector; short enough that prompt stays under 6K chars |
 | Propose `N` | 3 | Diminishing returns above 3; also a nice number for the self-consistency vote |
 | Workers | 4 | 4 positions × 4 calls = 16 concurrent requests; OpenRouter handles this fine |
-| Reflector temperature | `None` (run_001), `1.0` (run_002) | See §8 |
-| Hard budget cap | `$7.50` (run_001), `$4.50` (run_002) | Reserves room for 3-way held-out eval |
+| Reflector temperature | `None` (run_001), `1.0` (run_002+) | run_002 added mutation noise; see §8 |
+| Reflector model | `gpt-5.4-mini` (run_001,2), `gpt-5.4` (run_003) | Stronger model for reflection only; player stays on mini |
+| History size `N` | 0 (run_001,2), 5 (run_003) | Pass last-N iter outcomes to reflector to break dead-end explorations |
+| σ-gated acceptance | 0 (run_001,2), 1.5 (run_003) | Child must beat parent by 1.5×combined_stderr for the improvement to count as real |
+| Hard budget cap | `$7.50` (run_001), `$4.50` (run_002), `$5.00` (run_003) | Reserves room for held-out eval |
 | Early-stop threshold | `$0.80` remaining | Prevents starting an iter we can't finish |
 
 ## 7. Budget accounting
@@ -250,13 +253,12 @@ harness change** (single call → 3×propose+select), **half from GEPA**
 editing the PROPOSE prompt. Both contributions generalized to unseen
 positions.
 
-### run_002 — diversity-enhanced (planned / in progress)
+### run_002 — diversity-enhanced (warm-start + forced rotation)
 
 Observation from run_001: all 11 reflector edits targeted PROPOSE; SELECT
-was never touched, despite the trace format making SELECT failures visible
-("best move was in candidates but SELECT missed it"). Either SELECT is
-genuinely near-optimal for this model, or the reflector found PROPOSE
-easier to edit and never explored the SELECT axis.
+was never touched, despite the trace format making SELECT failures visible.
+Two possibilities: either SELECT was genuinely near-optimal, or the
+reflector found PROPOSE easier to edit and never explored the SELECT axis.
 
 To test this, run_002 adds three flags:
 
@@ -267,8 +269,74 @@ To test this, run_002 adds three flags:
   iters PROPOSE
 - `--reflect-temperature 1.0` — give the reflector non-zero sampling noise
 
-If SELECT edits consistently regress, the run_001 monotony was signal (SELECT
-is fine). If they help, we were in a local optimum.
+Early signal: iter 3 (forced SELECT edit) produced cp=37.5 vs warm-start
+parent's cp=64.9 on seed=1 positions — a 27-point drop. This is above the
+~18cp noise floor and is **the first SELECT edit ever made**, validating
+the rotation hypothesis: the reflector *would* have helped if it had
+explored SELECT. Subsequent iters regressed, consistent with one real gain
+plus noise.
+
+### Why we're adding run_003 — three known weaknesses
+
+Looking honestly at the run_001 and run_002 trajectories, three specific
+weaknesses show up:
+
+**1. Evaluation noise swamps small deltas.**
+With per-position cp-loss SD around ~100, a 30-position mean has standard
+error ≈ 18cp. Iter-to-iter differences under 18cp are likely pure
+position-sampling luck. That's why run_001 iter 7's "new best" at 53.9
+(vs iter 2 at 54.2) was almost certainly noise — the held-out jump from
+54→81 bears this out.
+
+**Fix**: require children to beat parent by `accept_sigma × combined_stderr`
+before treating the delta as real. Track `mean ± stderr` in every log
+line so reviewers can see the noise band.
+
+**2. Same-model reflector hits a ceiling.**
+At cp=120 the fixes are obvious ("consider quiet moves"). At cp=54,
+the remaining errors require articulating blind spots the same
+gpt-5.4-mini model has. It can't easily describe what it doesn't see.
+
+**Fix**: use `openai/gpt-5.4` (full, not mini) as the reflector. Player
+stays on mini. Reflection is 1 call per iter — incremental cost is
+~$0.30 per reflect call, well under budget.
+
+**3. No memory across iterations.**
+Each reflect call starts fresh. The reflector does not see "you already
+tried editing PROPOSE in iters 3, 4, 6 — all regressed." So it keeps
+exploring the same dead-end axis. Part of run_001's monoculture on
+PROPOSE edits is explained by this.
+
+**Fix**: pass the last-N `(module, Δcp, diagnosis, kept/rejected)` tuples
+as a "PREVIOUS ATTEMPTS" section in the reflection prompt. Zero API cost,
+~30 lines of code.
+
+### run_003 — planned combined fix
+
+New flags in `src/optimizer.py`:
+
+- `--reflect-model openai/gpt-5.4` — stronger reflector
+- `--history-n 5` (default) — pass last 5 iter outcomes to reflector
+- `--accept-sigma 1.5` — σ-gated improvement test (Pareto still enforces
+  legal/fmt floors; σ only gates the cp_loss objective for eviction logic)
+
+Logs now show `cp=<mean>±<stderr>` plus a `(σ-real)` or `(~noise)` flag per
+iter. `EvalReport.stderr_cp_loss` computes the sample standard error.
+
+Planned run_003 command:
+
+```bash
+uv run python -m v2.src.optimizer \
+  --budget 5.00 --T 12 --n-eval 40 --workers 4 --n-propose 3 \
+  --warm-start-from v2/runs/run_002 \
+  --force-module-rotation alt-select-first \
+  --reflect-temperature 1.0 \
+  --reflect-model openai/gpt-5.4 \
+  --history-n 5 \
+  --accept-sigma 1.5 \
+  --seed 2 \
+  --out v2/runs/run_003
+```
 
 ## 9. Lessons learned
 
@@ -276,16 +344,24 @@ is fine). If they help, we were in a local optimum.
   this budget; positions are dense, deterministic, and parallelizable.
 - **Position sampling matters more than I expected.** Swapping RNG seed
   from 0→1 shifted baseline cp_loss by ~11. Our 30-position samples are
-  small; tracking variance is important.
+  small; tracking variance is important. run_003 switches to 40 positions
+  (all available) and reports `cp ± stderr` so the noise band is visible.
 - **The harness change alone moved the needle a lot.** Self-consistency
   with parallel proposers + a selector LLM was responsible for ~50% of the
-  total improvement.
+  total improvement in run_001.
 - **Reflector bias is real.** Given two modules to choose between, the
-  reflector picked the same one 11 times in a row. Forcing rotation is a
-  cheap way to test this.
+  reflector picked the same one 11 times in a row. Forcing rotation in
+  run_002 produced the first SELECT edit and the best candidate yet.
+- **Same-model reflection has a ceiling.** The reflector is the same model
+  whose blind spots we're trying to fix. run_003 uses `openai/gpt-5.4`
+  (full) as reflector only — highest-ROI change per dollar.
+- **Memory-less reflection wastes iterations.** Each call was making the
+  same diagnosis without knowing that three previous attempts along the
+  same axis had regressed. run_003 passes the last-5 attempts as a
+  "PREVIOUS ATTEMPTS" section.
 - **OpenRouter's reported per-call cost is gold.** Token-price estimates
   were ~20% high vs actuals for gpt-5.4-mini at low reasoning.
-- **Hand-rolled GEPA is plenty.** ~250 lines. Debugging is trivial. Would
+- **Hand-rolled GEPA is plenty.** ~300 lines. Debugging is trivial. Would
   absolutely reach for DSPy for anything with >2 modules.
 
 ## 10. What we deliberately did not do

@@ -70,7 +70,7 @@ chose, what Stockfish's best move was, and the centipawn loss.
 
 {trace_table}
 
-# DIAGNOSIS GUIDE
+{history_section}# DIAGNOSIS GUIDE
 Ask: was the best move ever proposed?
 - If Stockfish's best move appears among the proposer candidates, but SELECT
   did not pick it, SELECT is at fault. Edit SELECT.
@@ -111,13 +111,46 @@ def _format_trace(worst: list) -> str:
     return "\n\n".join(rows)
 
 
+def _format_history(history: list[dict] | None) -> str:
+    """Build a '# PREVIOUS ATTEMPTS' section the reflector can learn from.
+
+    `history` is a list of recent iter logs (most recent last), each with keys:
+    module_edited, diagnosis, parent_cp, child_cp (None if no-op), accepted.
+    """
+    if not history:
+        return ""
+    lines = [
+        "# PREVIOUS ATTEMPTS",
+        "Recent reflection attempts on this lineage. Learn from them: "
+        "avoid re-proposing edits that regressed; if a module has been "
+        "repeatedly tried without success, target a different aspect or module.",
+        "",
+    ]
+    for h in history:
+        delta = (
+            "no-op" if h.get("child_cp") is None
+            else f"Δcp = {h['child_cp'] - h['parent_cp']:+.1f} "
+                 f"(parent {h['parent_cp']:.1f} -> child {h['child_cp']:.1f})"
+        )
+        verdict = "KEPT" if h.get("accepted") else "REJECTED"
+        lines.append(
+            f"- iter {h['iter']}: edited {h.get('module_edited','?')} -> {verdict}, {delta}\n"
+            f"  diagnosis then: {h.get('diagnosis','')[:220]}"
+        )
+    lines.append("")
+    return "\n".join(lines) + "\n"
+
+
 def reflect(parent: PromptSet, worst_scores: list, budget: Budget,
             *, forced_module: str | None = None,
-            temperature: float | None = None) -> tuple[PromptSet, dict]:
+            temperature: float | None = None,
+            history: list[dict] | None = None,
+            model: str | None = None) -> tuple[PromptSet, dict]:
     prompt = REFLECTION_TEMPLATE.format(
         propose_prompt=parent.propose,
         select_prompt=parent.select,
         trace_table=_format_trace(worst_scores),
+        history_section=_format_history(history),
     )
     if forced_module in ("propose", "select"):
         prompt += (
@@ -127,13 +160,16 @@ def reflect(parent: PromptSet, worst_scores: list, budget: Budget,
             f"fault, revise the {forced_module.upper()} prompt. Find SOMETHING in it "
             f"to improve based on the trace.\n"
         )
+    chat_kwargs = dict(
+        messages=[{"role": "user", "content": prompt}],
+        budget=budget, tag="reflect",
+        reasoning_effort="low",
+        temperature=temperature,
+    )
+    if model:
+        chat_kwargs["model"] = model
     try:
-        content, _ = chat(
-            messages=[{"role": "user", "content": prompt}],
-            budget=budget, tag="reflect",
-            reasoning_effort="low",
-            temperature=temperature,
-        )
+        content, _ = chat(**chat_kwargs)
     except BudgetExceeded:
         raise
     except Exception as e:
@@ -247,12 +283,29 @@ def _load_warm_start(warm_dir: Path) -> PromptSet | None:
     return PromptSet(propose=p_file.read_text(), select=s_file.read_text())
 
 
+def _recent_history(iterations: list[IterationLog], n: int = 5) -> list[dict]:
+    """Turn the last-n iteration logs into a compact form for the reflector."""
+    out = []
+    for h in iterations[-n:]:
+        parent_cp = -float(h.parent_score[0]) if h.parent_score else None
+        child_cp = -float(h.child_score[0]) if h.child_score else None
+        out.append({
+            "iter": h.iter, "module_edited": h.module_edited,
+            "diagnosis": h.diagnosis, "parent_cp": parent_cp,
+            "child_cp": child_cp, "accepted": h.accepted,
+        })
+    return out
+
+
 def run(out_dir: Path, *, cap_usd: float, P: int = 6, T: int = 12,
         n_eval: int = 30, n_minibatch: int = 8, n_propose: int = 3,
         n_workers: int = 4, seed: int = 0,
         warm_start: PromptSet | None = None,
         force_module_rotation: str | None = None,
-        reflect_temperature: float | None = None) -> RunState:
+        reflect_temperature: float | None = None,
+        reflect_model: str | None = None,
+        history_n: int = 5,
+        accept_sigma: float = 0.0) -> RunState:
     rng = random.Random(seed)
     out_dir.mkdir(parents=True, exist_ok=True)
     budget = Budget(cap_usd=cap_usd, log_path=out_dir / "calls.jsonl")
@@ -276,9 +329,11 @@ def run(out_dir: Path, *, cap_usd: float, P: int = 6, T: int = 12,
         print(f"[opt] budget exceeded during {label.lower()} eval: {e}")
         return state
     state.add(seed_set, seed_rep)
-    print(f"[opt] {label}: cp={seed_rep.mean_cp_loss:.1f} "
+    print(f"[opt] {label}: cp={seed_rep.mean_cp_loss:.1f}±{seed_rep.stderr_cp_loss:.1f} "
           f"legal={seed_rep.legal_rate:.2f} fmt={seed_rep.fmt_rate:.2f} "
           f"spent=${budget.spent:.4f}")
+    if reflect_model:
+        print(f"[opt] reflector model = {reflect_model}")
     state.save()
 
     for t in range(1, T + 1):
@@ -310,10 +365,13 @@ def run(out_dir: Path, *, cap_usd: float, P: int = 6, T: int = 12,
               f"{[s['cp_loss'] for s in minibatch[:3]]}"
               + (f" forced={forced}" if forced else ""))
 
+        hist = _recent_history(state.iterations, n=history_n)
         try:
             child_prompts, meta = reflect(parent_prompts, minibatch, budget,
                                           forced_module=forced,
-                                          temperature=reflect_temperature)
+                                          temperature=reflect_temperature,
+                                          history=hist,
+                                          model=reflect_model)
         except BudgetExceeded as e:
             print(f"[opt] budget exceeded in reflection: {e}")
             break
@@ -349,6 +407,18 @@ def run(out_dir: Path, *, cap_usd: float, P: int = 6, T: int = 12,
             break
         state.add(child_prompts, child_rep)
 
+        # Optional σ-gated eviction: if accept_sigma > 0, treat the child as
+        # worse-than-parent (for truncation) unless its cp_loss advantage
+        # exceeds accept_sigma * combined stderr. Pareto on legal/fmt still
+        # applies — σ only gates the cp_loss objective.
+        def _z_improves(child_r, parent_r, sigma):
+            if sigma <= 0:
+                return child_r.mean_cp_loss < parent_r.mean_cp_loss
+            se = (child_r.stderr_cp_loss ** 2 + parent_r.stderr_cp_loss ** 2) ** 0.5
+            return (parent_r.mean_cp_loss - child_r.mean_cp_loss) > sigma * se
+
+        z_improve = _z_improves(child_rep, parent_rep, accept_sigma)
+
         # Truncate to P
         if len(state.population) > P:
             front2 = pareto_front(state.population)
@@ -366,10 +436,11 @@ def run(out_dir: Path, *, cap_usd: float, P: int = 6, T: int = 12,
             child_score=child_rep.aggregate(),
             accepted=accepted, spent_after=budget.spent,
         ))
+        z_flag = "(σ-real)" if z_improve else "(~noise)"
         print(f"[opt] iter {t}: child={child_key} module={meta['module_to_edit']} "
-              f"cp={child_rep.mean_cp_loss:.1f} legal={child_rep.legal_rate:.2f} "
-              f"fmt={child_rep.fmt_rate:.2f} accepted={accepted} "
-              f"spent=${budget.spent:.4f}")
+              f"cp={child_rep.mean_cp_loss:.1f}±{child_rep.stderr_cp_loss:.1f} {z_flag} "
+              f"legal={child_rep.legal_rate:.2f} fmt={child_rep.fmt_rate:.2f} "
+              f"accepted={accepted} spent=${budget.spent:.4f}")
         state.save()
 
     state.save()
@@ -393,6 +464,15 @@ def main():
                    choices=[None, "alt-select-first", "alt-propose-first",
                             "propose", "select"])
     p.add_argument("--reflect-temperature", type=float, default=None)
+    p.add_argument("--reflect-model", type=str, default=None,
+                   help="model ID for reflector only (e.g. openai/gpt-5.4); "
+                        "player always stays on openai/gpt-5.4-mini")
+    p.add_argument("--history-n", type=int, default=5,
+                   help="pass the last-N iteration diagnoses + deltas to "
+                        "the reflector so it learns what failed")
+    p.add_argument("--accept-sigma", type=float, default=0.0,
+                   help="require child mean cp_loss beat parent by this many "
+                        "standard errors before treating improvement as real")
     args = p.parse_args()
 
     warm = _load_warm_start(Path(args.warm_start_from)) if args.warm_start_from else None
@@ -405,7 +485,10 @@ def main():
                 n_propose=args.n_propose, n_workers=args.workers, seed=args.seed,
                 warm_start=warm,
                 force_module_rotation=args.force_module_rotation,
-                reflect_temperature=args.reflect_temperature)
+                reflect_temperature=args.reflect_temperature,
+                reflect_model=args.reflect_model,
+                history_n=args.history_n,
+                accept_sigma=args.accept_sigma)
     print(f"\n[opt] DONE. spent=${state.budget.spent:.4f}  out={out}")
     if state.population:
         best_key = max(state.population, key=lambda k: state.population[k].aggregate())

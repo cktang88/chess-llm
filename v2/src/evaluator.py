@@ -42,6 +42,17 @@ class EvalReport:
         return sum(s.cp_loss for s in self.scores) / max(1, len(self.scores))
 
     @property
+    def stderr_cp_loss(self) -> float:
+        """Standard error of the mean cp_loss, SD/sqrt(N). Used by the
+        optimizer to reason about whether a score difference is real."""
+        n = len(self.scores)
+        if n < 2:
+            return 0.0
+        mu = self.mean_cp_loss
+        var = sum((s.cp_loss - mu) ** 2 for s in self.scores) / (n - 1)
+        return (var / n) ** 0.5
+
+    @property
     def legal_rate(self) -> float:
         return sum(1 for s in self.scores if s.legal) / max(1, len(self.scores))
 
